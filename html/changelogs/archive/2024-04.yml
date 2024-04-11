@@ -204,3 +204,10 @@
   - qol: Made it possible to read the amount of fuel in jerry cans
   novaepee:
   - rscadd: Mjolnir, a new armor
+2024-04-11:
+  Lumipharon:
+  - bugfix: fixed a few campaign runtimes
+  - rscadd: 'Campaign: Added a SOM raiding base mission'
+  - balance: Swapping with an illusion via mirage now breaks stealth
+  - bugfix: Mirage no longer lets you teleport across z-levels
+  - bugfix: fixed throwing rock pillars now applying the cooldown in many cases
