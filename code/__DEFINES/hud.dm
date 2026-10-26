@@ -108,6 +108,13 @@
 #define ui_ai_floor_indicator "BOTTOM+5,RIGHT"
 #define ui_ai_godownup "BOTTOM+5,RIGHT-1"
 
+// Cyborg
+#define ui_borg_module_button "CENTER-2:16,SOUTH:5"
+#define ui_borg_inv1 "CENTER-1:16,SOUTH:5"
+#define ui_borg_inv2 "CENTER:16,SOUTH:5"
+#define ui_borg_inv3 "CENTER+1:16,SOUTH:5"
+#define ui_borg_inv_stow "CENTER+2:16,SOUTH:5"
+
 // Plane group keys, used to group swaths of plane masters that need to appear in subwindows
 /// The primary group, holds everything on the main window
 #define PLANE_GROUP_MAIN "main"

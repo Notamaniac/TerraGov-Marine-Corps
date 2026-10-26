@@ -110,6 +110,10 @@
 	icon_state = "AI"
 	job = /datum/job/terragov/silicon/ai
 
+/obj/effect/landmark/start/job/cyborg
+	icon_state = "AI"
+	job = /datum/job/terragov/silicon/cyborg
+
 /obj/effect/landmark/start/job/survivor
 	icon_state = "Shaft Miner"
 	job = /datum/job/survivor/rambo

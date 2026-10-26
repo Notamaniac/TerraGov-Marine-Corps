@@ -1054,3 +1054,7 @@ GLOBAL_LIST_INIT(ai_damtype_to_heal_list, list(
 #define DRAGON_BREATH_MELTING "Melting"
 #define DRAGON_BREATH_SHATTERING "Shattering"
 #define DRAGON_BREATH_MELTING_ACID "Melting Acid"
+
+// Cyborgs
+///How many tools a cyborg can have equipped at once
+#define CYBORG_SLOT_COUNT 3

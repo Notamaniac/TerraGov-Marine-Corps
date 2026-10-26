@@ -88,11 +88,8 @@
 
 	holo_icon = getHologramIcon(icon('icons/mob/AI.dmi', "default"))
 
-	laws = list()
-	laws += "Safeguard: Protect your assigned vessel from damage to the best of your abilities."
-	laws += "Serve: Serve the personnel of your assigned vessel, and all other TerraGov personnel to the best of your abilities, with priority as according to their rank and role."
-	laws += "Protect: Protect the personnel of your assigned vessel, and all other TerraGov personnel to the best of your abilities, with priority as according to their rank and role."
-	laws += "Preserve: Do not allow unauthorized personnel to tamper with your equipment."
+	//Cyborgs follow this list directly, so it has to stay the same list object for as long as we live
+	laws = GLOB.default_silicon_laws.Copy()
 
 	var/list/iconstates = GLOB.ai_core_display_screens
 	icon_state = resolve_ai_icon(pick(iconstates))

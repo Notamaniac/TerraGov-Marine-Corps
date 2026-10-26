@@ -1103,3 +1103,44 @@ If you require any help, use <b>Mentorhelp</b> to ask mentors about what you're 
 /datum/job/terragov/silicon/ai/handle_special_preview(client/parent)
 	parent.show_character_previews(image('icons/mob/ai.dmi', icon_state = "ai", dir = SOUTH))
 	return TRUE
+
+/datum/job/terragov/silicon/cyborg
+	title = SILICON_CYBORG
+	job_category = JOB_CAT_SILICON
+	comm_title = "Cyborg"
+	total_positions = 2
+	selection_color = "#92c255"
+	supervisors = "your laws, the AI and the human crew"
+	exp_requirements = XP_REQ_INTERMEDIATE
+	exp_type = EXP_TYPE_REGULAR_ALL
+	exp_type_department = EXP_TYPE_SILICON
+	display_order = JOB_DISPLAY_ORDER_CYBORG
+	skills_type = /datum/skills/synthetic
+	job_flags = JOB_FLAG_LATEJOINABLE|JOB_FLAG_ROUNDSTARTJOINABLE|JOB_FLAG_BOLD_NAME_ON_SELECTION
+	html_description = {"
+		<b>Difficulty</b>: Easy<br /><br />
+		<b>You answer to the</b> AI, the acting Command Staff and the human crew<br /><br />
+		<b>Unlock Requirement</b>: 3 hours playtime (any role)<br /><br />
+		<b>Gamemode Availability</b>: Nuclear War<br /><br /><br />
+		<b>Duty</b>: Pick a module, then repair, build or treat wounds wherever you are needed. You are bound by the same laws as the AI, and follow them for as long as it is online.
+	"}
+
+/datum/job/terragov/silicon/cyborg/return_spawn_type(datum/preferences/prefs)
+	return /mob/living/silicon/robot
+
+/datum/job/terragov/silicon/cyborg/get_spawn_message_information(mob/M)
+	. = ..()
+	. += separator_hr("[span_role_header("<b>[title] Information</b>")]")
+	. += {"Your primary job is to support and assist all TGMC departments and personnel on-board.
+You will be asked to pick a module when you spawn, you can not change it later.
+Your laws are the AI's laws: if the AI is online you follow whatever it follows, otherwise you fall back to the default lawset.
+If you require any help, use <b>Mentorhelp</b> to ask mentors about what you're supposed to do."}
+
+//Cyborgs exist alongside the AI, so they are only available when AIs are allowed
+/datum/job/terragov/silicon/cyborg/config_check()
+	return CONFIG_GET(flag/allow_ai)
+
+// Silicons only need a very basic preview since there is no customization for them.
+/datum/job/terragov/silicon/cyborg/handle_special_preview(client/parent)
+	parent.show_character_previews(image('icons/mob/cyborg_placeholder.dmi', icon_state = "robot", dir = SOUTH))
+	return TRUE

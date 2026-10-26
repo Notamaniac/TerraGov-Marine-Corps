@@ -20,6 +20,7 @@
 		/datum/job/terragov/silicon/synthetic = 1,
 		/datum/job/terragov/command/transport_crewman = 1,
 		/datum/job/terragov/silicon/ai = 1,
+		/datum/job/terragov/silicon/cyborg = 2,
 		/datum/job/terragov/squad/engineer = 1,
 		/datum/job/terragov/squad/corpsman = 1,
 		/datum/job/terragov/squad/smartgunner = 1,

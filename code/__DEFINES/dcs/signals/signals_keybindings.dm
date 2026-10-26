@@ -399,3 +399,8 @@
 #define COMSIG_XENOABILITY_WIND_CURRENT "xenoability_wind_current"
 #define COMSIG_XENOABILITY_GRAB "xenoability_grab"
 #define COMSIG_XENOABILITY_SCORCHED_LAND "xenoability_scorched_land"
+
+#define COMSIG_KB_CYBORG_SLOT_ONE_DOWN "keybinding_cyborg_slot_one_down"
+#define COMSIG_KB_CYBORG_SLOT_TWO_DOWN "keybinding_cyborg_slot_two_down"
+#define COMSIG_KB_CYBORG_SLOT_THREE_DOWN "keybinding_cyborg_slot_three_down"
+#define COMSIG_KB_CYBORG_STOW_DOWN "keybinding_cyborg_stow_down"

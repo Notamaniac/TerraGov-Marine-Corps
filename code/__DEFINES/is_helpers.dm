@@ -157,6 +157,9 @@ GLOBAL_LIST_INIT(turfs_openspace, typecacheof(list(
 
 #define isAI(A) (istype(A, /mob/living/silicon/ai))
 
+///A cyborg, the silicon mob. Not to be confused with isrobot(), which checks for the combat robot human species
+#define iscyborg(A) (istype(A, /mob/living/silicon/robot))
+
 #define isAIeye(A) (istype(A, /mob/camera/aiEye))
 
 //Simple animals
