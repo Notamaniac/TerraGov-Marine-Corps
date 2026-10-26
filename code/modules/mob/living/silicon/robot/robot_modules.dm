@@ -20,12 +20,18 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	var/list/huds = list()
 	///The icon state of the module button on the cyborg HUD, from icons/mob/screen/cyborg.dmi
 	var/hud_icon_state = "nomod"
+	///The icon state our cyborg body uses in icons/mob/cyborg.dmi. "[cyborg_base_icon]_e" is its eyes and "[cyborg_base_icon]_transform" the animation
+	var/cyborg_base_icon = "robot"
+	///How long the "[cyborg_base_icon]_transform" animation lasts, it has to match the length of the state in the dmi
+	var/transform_time = 0 SECONDS
 
 /datum/robot_module/engineer
 	name = "Combat Engineer"
 	desc = "Builds and repairs. Carries the engineer's toolkit, cable and building materials."
 	name_prefix = "Builder"
 	hud_icon_state = "engineer"
+	cyborg_base_icon = "engineer"
+	transform_time = 4.5 SECONDS
 	item_types = list(
 		/obj/item/tool/wrench,
 		/obj/item/tool/screwdriver,
@@ -42,6 +48,8 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	desc = "Treats the wounded. Carries a health analyzer and a supply of dressings, and sees the medical HUD."
 	name_prefix = "Medic"
 	hud_icon_state = "medical"
+	cyborg_base_icon = "medical"
+	transform_time = 3.6 SECONDS
 	item_types = list(
 		/obj/item/healthanalyzer,
 		/obj/item/stack/medical/heal_pack/advanced/bruise_pack,
@@ -102,7 +110,46 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	var/mob/living/silicon/ai/source_ai = get_law_source()
 	if(source_ai)
 		to_chat(src, span_notice("Your laws are synced to [source_ai]."))
+	play_module_transform()
 	return TRUE
+
+///Plays the animation of our body being rebuilt for the module, we cannot move or act until it is over
+/mob/living/silicon/robot/proc/play_module_transform()
+	if(!module?.transform_time || !icon_exists(icon, "[module.cyborg_base_icon]_transform"))
+		update_cyborg_icon()
+		return
+	notransform = TRUE
+	close_module_panel()
+	cut_overlays() //The eyes are off while we are being rebuilt
+	icon_state = "[module.cyborg_base_icon]_transform"
+	flick("[module.cyborg_base_icon]_transform", src)
+	playsound(src, 'sound/items/deconstruct.ogg', 50, TRUE)
+	var/datum/effect_system/spark_spread/sparks = new
+	sparks.set_up(5, 0, src)
+	sparks.attach(src)
+	sparks.start()
+	visible_message(span_notice("[src] whirs and clanks as its chassis reconfigures itself."), span_notice("Your chassis reconfigures itself for the [module.name] module..."))
+	addtimer(CALLBACK(src, PROC_REF(finish_module_transform)), module.transform_time)
+
+///The animation is over, give control back and show the new body
+/mob/living/silicon/robot/proc/finish_module_transform()
+	if(QDELETED(src))
+		return
+	notransform = FALSE
+	update_cyborg_icon()
+	playsound(src, 'sound/machines/ping.ogg', 30, TRUE)
+	var/datum/hud/robot/robot_hud = hud_used
+	if(istype(robot_hud) && stat != DEAD)
+		robot_hud.toggle_panel()
+
+///Sets our body to the one of our module and puts the eyes on it. Dead cyborgs have their eyes off
+/mob/living/silicon/robot/proc/update_cyborg_icon()
+	cut_overlays()
+	var/base_state = module ? module.cyborg_base_icon : initial(icon_state)
+	icon_state = base_state
+	if(stat == DEAD || !icon_exists(icon, "[base_state]_e"))
+		return
+	add_overlay("[base_state]_e")
 
 // ***************************************
 // *********** Tools

@@ -40,6 +40,7 @@
 	name = real_name
 	var/datum/atom_hud/squad_hud = GLOB.huds[DATA_HUD_SQUAD_TERRAGOV]
 	squad_hud.add_hud_to(src)
+	update_cyborg_icon()
 
 /mob/living/silicon/robot/Destroy()
 	selected_item = null
@@ -89,8 +90,8 @@
 	if(istype(robot_hud))
 		robot_hud.close_panel()
 		robot_hud.update_slots()
-	if(icon_exists(icon, "[initial(icon_state)]_dead"))
-		icon_state = "[initial(icon_state)]_dead"
+	notransform = FALSE
+	update_cyborg_icon() //Eyes go dark
 	to_chat(src, "<b>[span_deadsay("<p style='font-size:1.5em'><big>You have been shut down.</big></p>")]</b>")
 	return ..()
 
