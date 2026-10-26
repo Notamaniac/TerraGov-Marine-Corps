@@ -17,6 +17,8 @@
 	var/panel_open = FALSE
 	///Puts the selected tool away, only on our screen while the tool panel is open
 	var/atom/movable/screen/robot/store_button/store_button
+	///Steps the headlamp through its brightness levels
+	var/atom/movable/screen/robot/lamp_button/lamp_button
 
 /datum/hud/robot/New(mob/living/silicon/robot/owner, ui_style = 'icons/mob/screen/cyborg.dmi', ui_color = "#ffffff", ui_alpha = 230)
 	. = ..()
@@ -26,6 +28,8 @@
 	//Tool slots and the module button stay on screen in every HUD mode, the cyborg is useless without them
 	module_button = new(null, src)
 	always_visible_inventory += module_button
+	lamp_button = new(null, src)
+	always_visible_inventory += lamp_button
 	//Not in any of the hud lists, refresh_panel puts it on the screen when the panel opens
 	store_button = new(null, src)
 	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
@@ -57,6 +61,7 @@
 	hud_client?.screen -= store_button
 	QDEL_LIST(panel_entries)
 	QDEL_NULL(store_button)
+	lamp_button = null
 	module_button = null
 	slots.Cut()
 	return ..()
@@ -81,6 +86,11 @@
 		var/atom/movable/screen/robot/module_slot/slot = slots[slot_num]
 		var/obj/item/slot_item = borg.slot_items[slot_num]
 		slot.set_item(slot_item, slot_item && slot_item == borg.selected_item)
+
+///Shows whether the headlamp is on and at what level
+/datum/hud/robot/proc/update_lamp()
+	var/mob/living/silicon/robot/borg = mymob
+	lamp_button?.update_level(borg.lamp_level)
 
 ///Shows our health
 /datum/hud/robot/proc/update_health()
@@ -147,6 +157,29 @@
 		return
 	var/datum/hud/robot/robot_hud = hud
 	robot_hud.toggle_panel()
+
+//Left click steps the headlamp up a level, right click turns it off
+/atom/movable/screen/robot/lamp_button
+	name = "headlamp"
+	icon_state = "lamp_off"
+	screen_loc = ui_borg_lamp
+	maptext_width = 32
+	maptext_y = 2
+
+/atom/movable/screen/robot/lamp_button/proc/update_level(level)
+	icon_state = level ? "lamp_on" : "lamp_off"
+	maptext = level ? MAPTEXT("[level]") : ""
+	name = "headlamp ([GLOB.cyborg_lamp_names[level + 1]])"
+
+/atom/movable/screen/robot/lamp_button/Click(location, control, params)
+	. = ..()
+	if(.)
+		return
+	var/mob/living/silicon/robot/borg = usr
+	if(params2list(params)[RIGHT_CLICK])
+		borg.set_lamp_level(0)
+		return
+	borg.cycle_lamp()
 
 //Puts the tool we are holding back on the panel
 /atom/movable/screen/robot/store_button

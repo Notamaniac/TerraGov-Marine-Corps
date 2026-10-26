@@ -150,6 +150,8 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	if(stat == DEAD || !icon_exists(icon, "[base_state]_e"))
 		return
 	add_overlay("[base_state]_e")
+	if(lamp_level && icon_exists(icon, "[base_state]_l"))
+		add_overlay("[base_state]_l")
 
 // ***************************************
 // *********** Tools

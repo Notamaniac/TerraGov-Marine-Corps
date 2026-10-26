@@ -404,3 +404,4 @@
 #define COMSIG_KB_CYBORG_SLOT_TWO_DOWN "keybinding_cyborg_slot_two_down"
 #define COMSIG_KB_CYBORG_SLOT_THREE_DOWN "keybinding_cyborg_slot_three_down"
 #define COMSIG_KB_CYBORG_STOW_DOWN "keybinding_cyborg_stow_down"
+#define COMSIG_KB_CYBORG_LAMP_DOWN "keybinding_cyborg_lamp_down"

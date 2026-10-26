@@ -58,3 +58,20 @@
 	if(active_slot)
 		borg.unequip_slot(active_slot)
 	return TRUE
+
+/datum/keybinding/cyborg/cycle_lamp
+	hotkey_keys = list("CtrlF")
+	name = "cyborg_cycle_lamp"
+	full_name = "Cycle headlamp"
+	description = "Steps your headlamp up a brightness level, and turns it off after the brightest."
+	keybind_signal = COMSIG_KB_CYBORG_LAMP_DOWN
+
+/datum/keybinding/cyborg/cycle_lamp/down(client/user)
+	if(!iscyborg(user.mob))
+		return FALSE
+	. = ..()
+	if(.)
+		return
+	var/mob/living/silicon/robot/borg = user.mob
+	borg.cycle_lamp()
+	return TRUE

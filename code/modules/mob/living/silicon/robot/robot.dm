@@ -31,6 +31,8 @@
 	var/list/obj/item/slot_items = list(null, null, null)
 	///The tool we are currently using, always one of slot_items
 	var/obj/item/selected_item
+	///How bright our headlamp is, 0 is off. See robot_lamp.dm
+	var/lamp_level = 0
 	///Cooldown for topping up our consumables
 	COOLDOWN_DECLARE(restock_cooldown)
 
@@ -91,7 +93,8 @@
 		robot_hud.close_panel()
 		robot_hud.update_slots()
 	notransform = FALSE
-	update_cyborg_icon() //Eyes go dark
+	set_lamp_level(0, silent = TRUE)
+	update_cyborg_icon() //Eyes and lamp go dark
 	to_chat(src, "<b>[span_deadsay("<p style='font-size:1.5em'><big>You have been shut down.</big></p>")]</b>")
 	return ..()
 
