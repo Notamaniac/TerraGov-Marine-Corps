@@ -106,6 +106,25 @@
 /mob/living/silicon/robot/swap_hand()
 	cycle_slots()
 
+// ***************************************
+// *********** Using the tool in a slot
+// ***************************************
+
+/mob/living/silicon/robot/proc/activate_selected_item()
+	if(stat == DEAD || incapacitated() || !selected_item)
+		return FALSE
+	selected_item.attack_self(src)
+	update_module_hud()
+	return TRUE
+
+///The use key and the Activate Held Object verb. We hold nothing in our hands, so use the selected tool instead
+/mob/living/silicon/robot/mode()
+	if(next_move > world.time)
+		return
+	activate_selected_item()
+	if(next_move <= world.time)
+		changeNext_move(CLICK_CD_FASTEST)
+
 ///Closes the tool panel on our HUD
 /mob/living/silicon/robot/proc/close_module_panel()
 	var/datum/hud/robot/robot_hud = hud_used

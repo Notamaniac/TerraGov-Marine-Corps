@@ -27,7 +27,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 
 /datum/robot_module/engineer
 	name = "Combat Engineer"
-	desc = "Builds and repairs. Carries the engineer's toolkit, cable and building materials."
+	desc = "Builds and repairs. Carries the engineer's toolkit, cable and building materials. Light your welder, then click a selected sheet or press the use key to open its construction menu."
 	name_prefix = "Builder"
 	hud_icon_state = "engineer"
 	cyborg_base_icon = "engineer"

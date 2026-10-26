@@ -1142,5 +1142,5 @@ If you require any help, use <b>Mentorhelp</b> to ask mentors about what you're 
 
 // Silicons only need a very basic preview since there is no customization for them.
 /datum/job/terragov/silicon/cyborg/handle_special_preview(client/parent)
-	parent.show_character_previews(image('icons/mob/cyborg_placeholder.dmi', icon_state = "robot", dir = SOUTH))
+	parent.show_character_previews(image('icons/mob/cyborg.dmi', icon_state = "robot", dir = SOUTH))
 	return TRUE

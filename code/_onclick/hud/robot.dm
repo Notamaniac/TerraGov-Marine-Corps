@@ -15,6 +15,8 @@
 	var/list/atom/movable/screen/robot/tool_entry/panel_entries = list()
 	///Is the tool panel open
 	var/panel_open = FALSE
+	///Puts the selected tool away, only on our screen while the tool panel is open
+	var/atom/movable/screen/robot/store_button/store_button
 
 /datum/hud/robot/New(mob/living/silicon/robot/owner, ui_style = 'icons/mob/screen/cyborg.dmi', ui_color = "#ffffff", ui_alpha = 230)
 	. = ..()
@@ -24,6 +26,8 @@
 	//Tool slots and the module button stay on screen in every HUD mode, the cyborg is useless without them
 	module_button = new(null, src)
 	always_visible_inventory += module_button
+	//Not in any of the hud lists, refresh_panel puts it on the screen when the panel opens
+	store_button = new(null, src)
 	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
 		var/atom/movable/screen/robot/module_slot/slot = new(null, src, slot_num)
 		slots += slot
@@ -50,7 +54,9 @@
 /datum/hud/robot/Destroy()
 	var/client/hud_client = mymob?.client
 	hud_client?.screen -= panel_entries
+	hud_client?.screen -= store_button
 	QDEL_LIST(panel_entries)
+	QDEL_NULL(store_button)
 	module_button = null
 	slots.Cut()
 	return ..()
@@ -99,7 +105,9 @@
 	hud_client?.screen -= panel_entries
 	QDEL_LIST(panel_entries)
 	if(!panel_open)
+		hud_client?.screen -= store_button
 		return
+	hud_client?.screen += store_button
 	var/mob/living/silicon/robot/borg = mymob
 	var/index = 0
 	for(var/obj/item/tool AS in borg.module_items)
@@ -139,6 +147,23 @@
 		return
 	var/datum/hud/robot/robot_hud = hud
 	robot_hud.toggle_panel()
+
+//Puts the tool we are holding back on the panel
+/atom/movable/screen/robot/store_button
+	name = "store"
+	icon_state = "store"
+	screen_loc = ui_borg_inv_stow
+
+/atom/movable/screen/robot/store_button/Click(location, control, params)
+	. = ..()
+	if(.)
+		return
+	var/mob/living/silicon/robot/borg = usr
+	var/active_slot = borg.get_selected_slot()
+	if(!active_slot)
+		borg.balloon_alert(borg, "not holding anything")
+		return
+	borg.unequip_slot(active_slot)
 
 /atom/movable/screen/robot/module_slot
 	name = "module"
@@ -192,7 +217,7 @@
 	if(shown_item)
 		. += mutable_appearance(shown_item.icon, shown_item.icon_state)
 
-//Left click readies or stows the tool, right click puts it back on the panel
+//Left click readies the tool, or uses it if it is already ready and is a sheet (opens the construction menu), right click puts it back on the panel
 /atom/movable/screen/robot/module_slot/Click(location, control, params)
 	. = ..()
 	if(.)
@@ -201,6 +226,9 @@
 	var/list/modifiers = params2list(params)
 	if(modifiers[RIGHT_CLICK])
 		borg.unequip_slot(slot_num)
+		return
+	if(shown_item && shown_item == borg.selected_item)
+		borg.activate_selected_item()
 		return
 	borg.toggle_slot(slot_num)
 
