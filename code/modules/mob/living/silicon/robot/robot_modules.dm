@@ -139,9 +139,6 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	notransform = FALSE
 	update_cyborg_icon()
 	playsound(src, 'sound/machines/ping.ogg', 30, TRUE)
-	var/datum/hud/robot/robot_hud = hud_used
-	if(istype(robot_hud) && stat != DEAD)
-		robot_hud.toggle_panel()
 
 ///Sets our body to the one of our module and puts the eyes on it. Dead cyborgs have their eyes off
 /mob/living/silicon/robot/proc/update_cyborg_icon()

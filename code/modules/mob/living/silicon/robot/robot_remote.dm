@@ -4,12 +4,8 @@
 /**
  * A cyborg can switch on the same remote interface the AI uses. While it is on, clicking a machine that is in view
  * runs the AI's version of the click on it: plain click is attack_ai, ctrl bolts, shift opens and ctrl+shift electrifies and so on.
-<<<<<<< HEAD
- * It only takes over clicks on machines, so mobs and turfs still behave normally, but a tool can't be used on a machine while it is on.
-=======
  * It only takes over clicks on machines, so mobs and turfs still behave normally. A plain click on a machine next to us while a tool is
  * selected still goes to the tool, so deselect the tool to use the interface on a machine that is within reach.
->>>>>>> Cyborgs: AI Interaction verb for working machines through the AI interface
  */
 /mob/living/silicon/robot
 	///Is the AI interface on
@@ -30,11 +26,7 @@
 	remote_interface = new_state
 	if(remote_interface)
 		RegisterSignal(src, COMSIG_MOB_CLICKON, PROC_REF(on_remote_click))
-<<<<<<< HEAD
-		to_chat(src, span_notice("AI interface on. Clicking a machine in view now works it the way the AI does. Toggle it off to use your tools on machines."))
-=======
 		to_chat(src, span_notice("AI interface on. Clicking a machine in view now works it the way the AI does. A plain click on a machine next to you still uses the tool you have selected."))
->>>>>>> Cyborgs: AI Interaction verb for working machines through the AI interface
 	else
 		UnregisterSignal(src, COMSIG_MOB_CLICKON)
 		to_chat(src, span_notice("AI interface off."))
@@ -48,12 +40,9 @@
 	//Alt is left alone so it can still be used to look at what is on a tile
 	if(modifiers["alt"])
 		return NONE
-<<<<<<< HEAD
-=======
-	//A plain click on a machine we could touch while holding a tool is the tool's, so it can still weld, cut wires and so on
+	//Register a plain click while having an item selected, so we can still weld, cut wires while holding a tool, and still use ctrl/shift click and so on to unbolt/open doors
 	if(selected_item && !modifiers["shift"] && !modifiers["ctrl"] && !modifiers["middle"] && Adjacent(clicked))
 		return NONE
->>>>>>> Cyborgs: AI Interaction verb for working machines through the AI interface
 	if(stat == DEAD || incapacitated())
 		return COMSIG_MOB_CLICK_CANCELED
 	if(world.time <= next_move)
