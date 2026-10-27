@@ -177,11 +177,8 @@
 		return
 	unequip_slot(active_slot)
 
- // ***************************************
- // *********** Using the tool in a slot
- // ***************************************
 /**
-* The tool in our selected slot stands in for a hand. Plenty of code asks a mob what it holds by looking at its l_hand and r_hand,
+ * The tool in our selected slot stands in for a hand. Plenty of code asks a mob what it holds by looking at its l_hand and r_hand,
  * which we never use, so every one of those helpers is answered from selected_item instead.
  */
 /mob/living/silicon/robot/get_held_item()
