@@ -2169,6 +2169,7 @@
 #include "code\modules\mob\living\silicon\robot\robot_lamp.dm"
 #include "code\modules\mob\living\silicon\robot\robot_modules.dm"
 #include "code\modules\mob\living\silicon\robot\robot_radio.dm"
+#include "code\modules\mob\living\silicon\robot\robot_remote.dm"
 #include "code\modules\mob\living\simple_animal\simple_animal.dm"
 #include "code\modules\mob\living\simple_animal\friendly\cat.dm"
 #include "code\modules\mob\living\simple_animal\friendly\catslug.dm"
