@@ -19,6 +19,8 @@
 	var/atom/movable/screen/robot/store_button/store_button
 	///Steps the headlamp through its brightness levels
 	var/atom/movable/screen/robot/lamp_button/lamp_button
+	///Opens the radio window
+	var/atom/movable/screen/robot/radio_button/radio_button
 
 /datum/hud/robot/New(mob/living/silicon/robot/owner, ui_style = 'icons/mob/screen/cyborg.dmi', ui_color = "#ffffff", ui_alpha = 230)
 	. = ..()
@@ -30,6 +32,8 @@
 	always_visible_inventory += module_button
 	lamp_button = new(null, src)
 	always_visible_inventory += lamp_button
+	radio_button = new(null, src)
+	always_visible_inventory += radio_button
 	//Not in any of the hud lists, refresh_panel puts it on the screen when the panel opens
 	store_button = new(null, src)
 	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
@@ -62,6 +66,7 @@
 	QDEL_LIST(panel_entries)
 	QDEL_NULL(store_button)
 	lamp_button = null
+	radio_button = null
 	module_button = null
 	slots.Cut()
 	return ..()
@@ -180,6 +185,19 @@
 		borg.set_lamp_level(0)
 		return
 	borg.cycle_lamp()
+
+//Opens the radio window
+/atom/movable/screen/robot/radio_button
+	name = "radio"
+	icon_state = "radio"
+	screen_loc = ui_borg_radio
+
+/atom/movable/screen/robot/radio_button/Click(location, control, params)
+	. = ..()
+	if(.)
+		return
+	var/mob/living/silicon/robot/borg = usr
+	borg.ui_interact(borg)
 
 //Puts the tool we are holding back on the panel
 /atom/movable/screen/robot/store_button

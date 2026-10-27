@@ -115,6 +115,7 @@
 #define ui_borg_inv3 "CENTER+1:16,SOUTH:5"
 #define ui_borg_inv_stow "CENTER+2:16,SOUTH:5"
 #define ui_borg_lamp "CENTER-3:16,SOUTH:5"
+#define ui_borg_radio "CENTER-4:16,SOUTH:5"
 
 // Plane group keys, used to group swaths of plane masters that need to appear in subwindows
 /// The primary group, holds everything on the main window
