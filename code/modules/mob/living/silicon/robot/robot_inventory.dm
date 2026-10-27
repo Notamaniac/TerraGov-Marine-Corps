@@ -176,3 +176,30 @@
 		to_chat(src, span_warning("You are not holding anything."))
 		return
 	unequip_slot(active_slot)
+
+ // ***************************************
+ // *********** Using the tool in a slot
+ // ***************************************
+/**
+* The tool in our selected slot stands in for a hand. Plenty of code asks a mob what it holds by looking at its l_hand and r_hand,
+ * which we never use, so every one of those helpers is answered from selected_item instead.
+ */
+/mob/living/silicon/robot/get_held_item()
+	return selected_item
+
+/mob/living/silicon/robot/get_inactive_held_item()
+	return null
+
+/mob/living/silicon/robot/get_held_items()
+	. = list()
+	if(selected_item)
+		. += selected_item
+
+/mob/living/silicon/robot/is_holding(obj/item/checked_item)
+	return !!checked_item && checked_item == selected_item
+
+///Wirecutters, multitools and the like only count while they are the selected tool
+/mob/living/silicon/robot/is_holding_tool_quality(quality)
+	if(selected_item?.tool_behaviour == quality)
+		return selected_item
+	return null
