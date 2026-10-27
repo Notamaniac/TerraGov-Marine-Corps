@@ -1,5 +1,7 @@
 ///How many tools fit on one row of the module panel
 #define CYBORG_PANEL_COLUMNS 4
+///How many pixels of a module slot, from each edge, count as its frame. A click inside that is on the slot, a click further in is on the tool
+#define CYBORG_SLOT_ITEM_MARGIN 8
 
 /**
  * The cyborg HUD. Same layout as TGstation's: the module button and three tool slots along the bottom,
@@ -268,7 +270,7 @@
 	if(shown_item)
 		. += mutable_appearance(shown_item.icon, shown_item.icon_state)
 
-//Left click readies the tool, or uses it if it is already ready and is a sheet (opens the construction menu), right click puts it back on the panel
+//Left click readies the tool. On a ready tool, a click on the tool uses it (opens the construction menu of a sheet and so on) and a click on the frame lowers it. Right click puts it back on the panel
 /atom/movable/screen/robot/module_slot/Click(location, control, params)
 	. = ..()
 	if(.)
@@ -278,10 +280,20 @@
 	if(modifiers[RIGHT_CLICK])
 		borg.unequip_slot(slot_num)
 		return
-	if(shown_item && shown_item == borg.selected_item)
+	//Clicking the tool itself, the middle of the slot, uses it. Clicking the frame around it lowers it, or readies it if it was not selected
+	if(shown_item && shown_item == borg.selected_item && is_click_on_item(modifiers))
 		borg.activate_selected_item()
 		return
 	borg.toggle_slot(slot_num)
+
+///Did this click land on the tool drawn in the middle of the slot rather than on the frame around it
+/atom/movable/screen/robot/module_slot/proc/is_click_on_item(list/modifiers)
+	var/click_x = text2num(modifiers["icon-x"])
+	var/click_y = text2num(modifiers["icon-y"])
+	if(isnull(click_x) || isnull(click_y))
+		return FALSE
+	return ISINRANGE(click_x, CYBORG_SLOT_ITEM_MARGIN, world.icon_size - CYBORG_SLOT_ITEM_MARGIN) \
+		&& ISINRANGE(click_y, CYBORG_SLOT_ITEM_MARGIN, world.icon_size - CYBORG_SLOT_ITEM_MARGIN)
 
 /atom/movable/screen/robot/tool_entry
 	name = "tool"
