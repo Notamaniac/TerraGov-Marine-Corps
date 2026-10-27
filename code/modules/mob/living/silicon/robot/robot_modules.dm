@@ -76,15 +76,31 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	if(!client)
 		return
 
-	var/list/choices = list()
-	for(var/module_name in GLOB.cyborg_modules)
-		choices += module_name
-	var/choice = tgui_input_list(src, "Which module will you operate with? This cannot be changed later.", "Choose Module", choices)
+	var/choice
+	if(client.prefs.toggles_gameplay & (RADIAL_MEDICAL|RADIAL_STACKS|RADIAL_LASERGUNS))
+		choice = show_module_radial()
+	else
+		var/list/choices = list()
+		for(var/module_name in GLOB.cyborg_modules)
+			choices += module_name
+		choice = tgui_input_list(src, "Which module will you operate with? This cannot be changed later.", "Choose Module", choices)
 	if(!choice || module || QDELETED(src))
 		return
 	if(!GLOB.cyborg_modules[choice])
 		return
 	set_module(GLOB.cyborg_modules[choice])
+
+///Shows the modules as a radial menu, each one drawn as the body we would turn into. Returns the name of the one picked, or null
+/mob/living/silicon/robot/proc/show_module_radial()
+	var/list/choices = list()
+	for(var/module_name in GLOB.cyborg_modules)
+		var/datum/robot_module/module_type = GLOB.cyborg_modules[module_name]
+		choices[module_name] = image(icon = 'icons/mob/cyborg.dmi', icon_state = initial(module_type.cyborg_base_icon), dir = SOUTH)
+	return show_radial_menu(src, src, choices, custom_check = CALLBACK(src, PROC_REF(can_choose_module)), tooltips = TRUE)
+
+///The radial menu closes itself when this stops being true
+/mob/living/silicon/robot/proc/can_choose_module()
+	return !module && !QDELETED(src) && stat != DEAD
 
 ///Gives us a module and everything that comes with it
 /mob/living/silicon/robot/proc/set_module(module_type)
