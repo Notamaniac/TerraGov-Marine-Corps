@@ -41,6 +41,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		/obj/item/stack/cable_coil,
 		/obj/item/stack/sheet/metal,
 		/obj/item/stack/sheet/plasteel,
+		/obj/item/flash
 	)
 
 /datum/robot_module/medical

@@ -285,7 +285,7 @@
 
 /atom/movable/screen/robot/tool_entry
 	name = "tool"
-	icon_state = "blank"
+	icon_state = "template"
 	///The tool this entry stands for
 	var/obj/item/tool
 
