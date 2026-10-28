@@ -40,7 +40,8 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		/obj/item/stack/sheet/metal/cyborg,
 		/obj/item/stack/barbed_wire/cyborg,
 		/obj/item/stack/razorwire/cyborg,
-		/obj/item/stack/sheet/plasteel,
+		/obj/item/stack/sheet/plasteel/cyborg,
+		/obj/item/cyborg_sheet_snatcher,
 		/obj/item/cyborg_meson_scanner,
 		/obj/item/flash
 	)
@@ -193,7 +194,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	module_items += new_item
 	update_module_hud()
 
-///One of our tools got destroyed or used up, a replacement is fabricated after a while
+///One of our tools got destroyed or used up, it is not replaced
 /mob/living/silicon/robot/proc/on_module_item_deleted(obj/item/source)
 	SIGNAL_HANDLER
 	if(QDELETED(src))
@@ -202,33 +203,6 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	reservoir_stacks -= source
 	forget_module_item(source)
 	update_module_hud()
-	addtimer(CALLBACK(src, PROC_REF(add_module_item), source.type), CYBORG_RESTOCK_INTERVAL)
-
-///Tops up the stacks and welder fuel our module handed out
-/mob/living/silicon/robot/proc/restock_module_items()
-	if(!COOLDOWN_FINISHED(src, restock_cooldown))
-		return
-	COOLDOWN_START(src, restock_cooldown, CYBORG_RESTOCK_INTERVAL)
-	//The reservoir refills as one, its stacks just show how much of it they could make
-	if(metal_reserve < CYBORG_METAL_RESERVE_MAX)
-		metal_reserve = min(metal_reserve + CYBORG_RESTOCK_AMOUNT, CYBORG_METAL_RESERVE_MAX)
-		sync_reservoir()
-	for(var/obj/item/module_item AS in module_items)
-		if(is_reservoir_stack(module_item))
-			continue
-		if(istype(module_item, /obj/item/stack))
-			var/obj/item/stack/restocked_stack = module_item
-			if(restocked_stack.amount >= restocked_stack.max_amount)
-				continue
-			restocked_stack.amount = min(restocked_stack.amount + CYBORG_RESTOCK_AMOUNT, restocked_stack.max_amount)
-			restocked_stack.update_weight()
-			restocked_stack.update_icon()
-			continue
-		if(istype(module_item, /obj/item/tool/weldingtool))
-			var/obj/item/tool/weldingtool/welder = module_item
-			var/missing_fuel = welder.max_fuel - welder.get_fuel()
-			if(missing_fuel > 0)
-				welder.reagents.add_reagent(/datum/reagent/fuel, min(missing_fuel, CYBORG_RESTOCK_AMOUNT))
 
 // ***************************************
 // *********** Metal reservoir
@@ -236,11 +210,12 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 /**
  * Metal sheets, barbed wire and razor wire all draw on the one reservoir of metal of the cyborg that carries them.
  * A stack's amount is how many it could make from what is left, so using one of them lowers what the others show.
- * They never run out for good, the reservoir refills over time, and they can't be split or have anything added to them.
+ * The plasteel sheets have a reservoir of their own. Nothing refills them by itself, a sheet snatcher turns sheets of metal and plasteel back into reservoir.
+ * They can't be split or have anything added to them.
  */
 ///Is this one of the tools that draw on our metal reservoir
 /mob/living/silicon/robot/proc/is_reservoir_stack(obj/item/checked_item)
-	return istype(checked_item, /obj/item/stack/sheet/metal/cyborg) || istype(checked_item, /obj/item/stack/barbed_wire/cyborg) || istype(checked_item, /obj/item/stack/razorwire/cyborg)
+	return istype(checked_item, /obj/item/stack/sheet/metal/cyborg) || istype(checked_item, /obj/item/stack/barbed_wire/cyborg) || istype(checked_item, /obj/item/stack/razorwire/cyborg) || istype(checked_item, /obj/item/stack/sheet/plasteel/cyborg)
 
 ///Makes every tool that draws on the reservoir show what it holds
 /mob/living/silicon/robot/proc/sync_reservoir()
@@ -265,6 +240,38 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	borg.metal_reserve -= used * metal_cost
 	borg.sync_reservoir()
 	return TRUE
+
+///How many plasteel sheets the reservoir of the cyborg carrying a stack holds
+/proc/get_plasteel_reserve_amount(obj/item/stack/stack)
+	var/mob/living/silicon/robot/borg = stack.loc
+	if(!istype(borg))
+		return 0
+	return borg.plasteel_reserve
+
+///Takes used sheets out of the plasteel reservoir of the cyborg carrying a stack
+/proc/use_plasteel_reserve(obj/item/stack/stack, used)
+	var/mob/living/silicon/robot/borg = stack.loc
+	if(!istype(borg) || used > borg.plasteel_reserve)
+		return FALSE
+	borg.plasteel_reserve -= used
+	borg.sync_reservoir()
+	return TRUE
+
+/obj/item/stack/sheet/plasteel/cyborg
+	max_amount = CYBORG_PLASTEEL_RESERVE_MAX
+	merge_type = /obj/item/stack/sheet/plasteel/cyborg
+
+/obj/item/stack/sheet/plasteel/cyborg/get_amount()
+	return get_plasteel_reserve_amount(src)
+
+/obj/item/stack/sheet/plasteel/cyborg/use(used)
+	return use_plasteel_reserve(src, used)
+
+/obj/item/stack/sheet/plasteel/cyborg/add(extra)
+	return FALSE
+
+/obj/item/stack/sheet/plasteel/cyborg/change_stack(mob/user, new_amount)
+	return
 
 /obj/item/stack/sheet/metal/cyborg
 	max_amount = CYBORG_METAL_RESERVE_MAX

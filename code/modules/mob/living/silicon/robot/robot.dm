@@ -1,11 +1,9 @@
-///How often a cyborg tops up the consumables its module handed out
-#define CYBORG_RESTOCK_INTERVAL (10 SECONDS)
-///How much of each consumable a cyborg regains per restock
-#define CYBORG_RESTOCK_AMOUNT 2
 ///How long it takes to bring a cyborg back online with a multitool
 #define CYBORG_REVIVE_TIME (5 SECONDS)
 ///How much metal a cyborg's reservoir holds. Metal sheets, barbed wire and razor wire are all made out of it
 #define CYBORG_METAL_RESERVE_MAX 100
+///How much plasteel a cyborg's reservoir holds
+#define CYBORG_PLASTEEL_RESERVE_MAX 50
 ///How much metal one barbed wire takes from the reservoir
 #define CYBORG_BARBED_WIRE_COST 1
 ///How much metal one razor wire takes from the reservoir
@@ -45,12 +43,12 @@
 	var/custom_name
 	///The metal in our reservoir, which the metal sheets, barbed wire and razor wire of our module are made out of
 	var/metal_reserve = CYBORG_METAL_RESERVE_MAX
-	///Our module's tools that draw on the reservoir
+	///The plasteel in our reservoir, which the plasteel sheets of our module are made out of
+	var/plasteel_reserve = CYBORG_PLASTEEL_RESERVE_MAX
+	///Our module's tools that draw on the reservoirs
 	var/list/obj/item/stack/reservoir_stacks = list()
 	///Is our cover pried open. Only possible while we are shut down
 	var/cover_open = FALSE
-	///Cooldown for topping up our consumables
-	COOLDOWN_DECLARE(restock_cooldown)
 
 /mob/living/silicon/robot/Initialize(mapload)
 	. = ..()
@@ -144,8 +142,7 @@
 	. = ..()
 	if(stat == DEAD)
 		return
-	restock_module_items()
-	//Stack counts on the slots change as the tools get used and restocked
+	//Stack counts on the slots change as the tools get used
 	var/datum/hud/robot/robot_hud = hud_used
 	if(istype(robot_hud))
 		robot_hud.update_slots()
