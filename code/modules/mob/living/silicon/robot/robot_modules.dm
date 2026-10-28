@@ -116,9 +116,11 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		var/datum/atom_hud/module_hud = GLOB.huds[hud_define]
 		module_hud.add_hud_to(src)
 
-	var/old_name = real_name
-	fully_replace_character_name(old_name, "[module.name_prefix] [rand(100, 999)]")
-	update_names_joined_list(real_name, old_name)
+	//A name chosen by the player is kept, otherwise we are named after the module
+	if(!custom_name)
+		var/old_name = real_name
+		fully_replace_character_name(old_name, "[module.name_prefix] [rand(100, 999)]")
+		update_names_joined_list(real_name, old_name)
 
 	var/datum/hud/robot/robot_hud = hud_used
 	if(istype(robot_hud))

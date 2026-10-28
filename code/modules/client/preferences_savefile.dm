@@ -472,6 +472,7 @@
 	READ_FILE(S["robot_type"], robot_type)
 	READ_FILE(S["xeno_name"], xeno_name)
 	READ_FILE(S["ai_name"], ai_name)
+	READ_FILE(S["cyborg_name"], cyborg_name)
 
 	READ_FILE(S["real_name"], real_name)
 	READ_FILE(S["random_name"], random_name)
@@ -532,6 +533,9 @@
 	robot_type = sanitize_inlist(robot_type, ROBOT_TYPES, initial(robot_type))
 	xeno_name = reject_bad_name(xeno_name)
 	ai_name = reject_bad_name(ai_name, TRUE)
+	cyborg_name = reject_bad_name(cyborg_name, TRUE)
+	if(!cyborg_name)
+		cyborg_name = ""
 
 	real_name = reject_bad_name(real_name, TRUE)
 	random_name = sanitize_integer(random_name, TRUE, TRUE, initial(random_name))
@@ -625,6 +629,9 @@
 	robot_type = sanitize_inlist(robot_type, ROBOT_TYPES, initial(robot_type))
 	xeno_name = reject_bad_name(xeno_name)
 	ai_name = reject_bad_name(ai_name, TRUE)
+	cyborg_name = reject_bad_name(cyborg_name, TRUE)
+	if(!cyborg_name)
+		cyborg_name = ""
 
 	real_name = reject_bad_name(real_name, TRUE)
 	random_name = sanitize_integer(random_name, FALSE, TRUE, initial(random_name))
@@ -691,6 +698,7 @@
 	WRITE_FILE(S["robot_type"], robot_type)
 	WRITE_FILE(S["xeno_name"], xeno_name)
 	WRITE_FILE(S["ai_name"], ai_name)
+	WRITE_FILE(S["cyborg_name"], cyborg_name)
 
 	WRITE_FILE(S["real_name"], real_name)
 	WRITE_FILE(S["random_name"], random_name)

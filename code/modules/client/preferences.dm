@@ -67,6 +67,10 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	//AI specific preferences
 	var/ai_name = "ARES v3.2"
 
+	//Cyborg specific preferences
+	///What our cyborg is called. Empty means it is named after its module like usual
+	var/cyborg_name = ""
+
 	//Character preferences
 	var/real_name = ""
 	var/random_name = FALSE

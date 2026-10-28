@@ -41,6 +41,8 @@
 	var/obj/item/selected_item
 	///How bright our headlamp is, 0 is off. See robot_lamp.dm
 	var/lamp_level = 0
+	///The name the player gave us in the character setup, if any. While there is one a module does not rename us
+	var/custom_name
 	///The metal in our reservoir, which the metal sheets, barbed wire and razor wire of our module are made out of
 	var/metal_reserve = CYBORG_METAL_RESERVE_MAX
 	///Our module's tools that draw on the reservoir

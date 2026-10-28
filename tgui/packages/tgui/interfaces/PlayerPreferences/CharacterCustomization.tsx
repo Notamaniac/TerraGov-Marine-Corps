@@ -82,6 +82,13 @@ export const CharacterCustomization = (props) => {
                 value={'synthetic_name'}
               />
               <TextFieldPreference label={'AI Name'} value={'ai_name'} />
+              <TextFieldPreference
+                label={'Cyborg Name'}
+                value={'cyborg_name'}
+                allowEmpty
+                placeholder="Named after its module"
+                tooltip="Leave empty to be named after your module, like Medic 123."
+              />
             </LabeledList>
           </Flex.Item>
           <Flex.Item>

@@ -4,7 +4,17 @@ import { useBackend } from '../../backend';
 
 export const TextFieldPreference = (props) => {
   const { act, data } = useBackend<any>();
-  const { label, value, action, extra, onFocus, noAction, tooltip } = props;
+  const {
+    label,
+    value,
+    action,
+    extra,
+    onFocus,
+    noAction,
+    tooltip,
+    allowEmpty,
+    placeholder,
+  } = props;
   const itemLabel = label || value;
 
   const handler = noAction ? () => {} : act;
@@ -12,8 +22,8 @@ export const TextFieldPreference = (props) => {
   return (
     <LabeledList.Item label={itemLabel} tooltip={tooltip}>
       <Input
-        placeholder={data[value] || ''}
-        value={data[value] || value}
+        placeholder={allowEmpty ? placeholder || '' : data[value] || ''}
+        value={allowEmpty ? data[value] || '' : data[value] || value}
         onBlur={(newValue) =>
           !onFocus && handler(action || value, { newValue })
         }

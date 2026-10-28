@@ -354,6 +354,11 @@
 	overlay_fullscreen_timer(2 SECONDS, 20, "roundstart2", /atom/movable/screen/fullscreen/spawning_in)
 
 /mob/living/silicon/robot/on_spawn(mob/new_player/summoner)
+	//A name picked in the character setup is kept whatever module we turn into
+	var/chosen_name = summoner.client?.prefs?.cyborg_name
+	if(chosen_name && !is_banned_from(summoner.ckey, "Appearance"))
+		custom_name = chosen_name
+		fully_replace_character_name(real_name, custom_name)
 	update_names_joined_list(real_name)
 	overlay_fullscreen_timer(0.5 SECONDS, 10, "roundstart1", /atom/movable/screen/fullscreen/black)
 	overlay_fullscreen_timer(2 SECONDS, 20, "roundstart2", /atom/movable/screen/fullscreen/spawning_in)
