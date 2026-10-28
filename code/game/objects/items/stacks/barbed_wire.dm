@@ -76,7 +76,7 @@
 	amount = 20
 
 /obj/item/stack/razorwire/attack_self(mob/user) //use barbed wire to deploy it
-	if(!ishuman(usr))
+	if(!ishuman(user) && !iscyborg(user))
 		return
 
 	var/turf/mystery_turf = get_step(user.loc,user.dir)

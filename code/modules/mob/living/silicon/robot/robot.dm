@@ -4,6 +4,12 @@
 #define CYBORG_RESTOCK_AMOUNT 2
 ///How long it takes to bring a cyborg back online with a multitool
 #define CYBORG_REVIVE_TIME (5 SECONDS)
+///How much metal a cyborg's reservoir holds. Metal sheets, barbed wire and razor wire are all made out of it
+#define CYBORG_METAL_RESERVE_MAX 100
+///How much metal one barbed wire takes from the reservoir
+#define CYBORG_BARBED_WIRE_COST 1
+///How much metal one razor wire takes from the reservoir
+#define CYBORG_RAZORWIRE_COST 2
 ///Trait source for everything a cyborg module handed out
 #define CYBORG_MODULE_TRAIT "cyborg_module"
 
@@ -35,6 +41,10 @@
 	var/obj/item/selected_item
 	///How bright our headlamp is, 0 is off. See robot_lamp.dm
 	var/lamp_level = 0
+	///The metal in our reservoir, which the metal sheets, barbed wire and razor wire of our module are made out of
+	var/metal_reserve = CYBORG_METAL_RESERVE_MAX
+	///Our module's tools that draw on the reservoir
+	var/list/obj/item/stack/reservoir_stacks = list()
 	///Is our cover pried open. Only possible while we are shut down
 	var/cover_open = FALSE
 	///Cooldown for topping up our consumables

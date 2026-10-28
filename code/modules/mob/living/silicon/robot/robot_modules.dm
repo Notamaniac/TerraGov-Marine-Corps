@@ -39,7 +39,9 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		/obj/item/tool/crowbar,
 		/obj/item/tool/weldingtool,
 		/obj/item/stack/cable_coil,
-		/obj/item/stack/sheet/metal,
+		/obj/item/stack/sheet/metal/cyborg,
+		/obj/item/stack/barbed_wire/cyborg,
+		/obj/item/stack/razorwire/cyborg,
 		/obj/item/stack/sheet/plasteel,
 		/obj/item/flash
 	)
@@ -175,7 +177,10 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	if(QDELETED(src) || stat == DEAD)
 		return
 	var/obj/item/new_item = new item_type(src)
-	if(istype(new_item, /obj/item/stack))
+	if(is_reservoir_stack(new_item))
+		reservoir_stacks += new_item
+		sync_reservoir()
+	else if(istype(new_item, /obj/item/stack))
 		var/obj/item/stack/new_stack = new_item
 		new_stack.amount = new_stack.max_amount
 		new_stack.update_weight()
@@ -191,6 +196,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	if(QDELETED(src))
 		return
 	module_items -= source
+	reservoir_stacks -= source
 	forget_module_item(source)
 	update_module_hud()
 	addtimer(CALLBACK(src, PROC_REF(add_module_item), source.type), CYBORG_RESTOCK_INTERVAL)
@@ -200,7 +206,13 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	if(!COOLDOWN_FINISHED(src, restock_cooldown))
 		return
 	COOLDOWN_START(src, restock_cooldown, CYBORG_RESTOCK_INTERVAL)
+	//The reservoir refills as one, its stacks just show how much of it they could make
+	if(metal_reserve < CYBORG_METAL_RESERVE_MAX)
+		metal_reserve = min(metal_reserve + CYBORG_RESTOCK_AMOUNT, CYBORG_METAL_RESERVE_MAX)
+		sync_reservoir()
 	for(var/obj/item/module_item AS in module_items)
+		if(is_reservoir_stack(module_item))
+			continue
 		if(istype(module_item, /obj/item/stack))
 			var/obj/item/stack/restocked_stack = module_item
 			if(restocked_stack.amount >= restocked_stack.max_amount)
@@ -214,3 +226,87 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 			var/missing_fuel = welder.max_fuel - welder.get_fuel()
 			if(missing_fuel > 0)
 				welder.reagents.add_reagent(/datum/reagent/fuel, min(missing_fuel, CYBORG_RESTOCK_AMOUNT))
+
+// ***************************************
+// *********** Metal reservoir
+// ***************************************
+/**
+ * Metal sheets, barbed wire and razor wire all draw on the one reservoir of metal of the cyborg that carries them.
+ * A stack's amount is how many it could make from what is left, so using one of them lowers what the others show.
+ * They never run out for good, the reservoir refills over time, and they can't be split or have anything added to them.
+ */
+///Is this one of the tools that draw on our metal reservoir
+/mob/living/silicon/robot/proc/is_reservoir_stack(obj/item/checked_item)
+	return istype(checked_item, /obj/item/stack/sheet/metal/cyborg) || istype(checked_item, /obj/item/stack/barbed_wire/cyborg) || istype(checked_item, /obj/item/stack/razorwire/cyborg)
+
+///Makes every tool that draws on the reservoir show what it holds
+/mob/living/silicon/robot/proc/sync_reservoir()
+	for(var/obj/item/stack/reservoir_stack AS in reservoir_stacks)
+		reservoir_stack.amount = reservoir_stack.get_amount()
+		reservoir_stack.update_weight()
+		reservoir_stack.update_icon()
+	update_module_hud()
+
+///How many of a stack costing metal_cost each could be made from the reservoir of the cyborg carrying it
+/proc/get_reservoir_amount(obj/item/stack/stack, metal_cost)
+	var/mob/living/silicon/robot/borg = stack.loc
+	if(!istype(borg))
+		return 0
+	return floor(borg.metal_reserve / metal_cost)
+
+///Takes used of a stack costing metal_cost each out of the reservoir of the cyborg carrying it
+/proc/use_reservoir(obj/item/stack/stack, used, metal_cost)
+	var/mob/living/silicon/robot/borg = stack.loc
+	if(!istype(borg) || used > get_reservoir_amount(stack, metal_cost))
+		return FALSE
+	borg.metal_reserve -= used * metal_cost
+	borg.sync_reservoir()
+	return TRUE
+
+/obj/item/stack/sheet/metal/cyborg
+	max_amount = CYBORG_METAL_RESERVE_MAX
+	merge_type = /obj/item/stack/sheet/metal/cyborg
+
+/obj/item/stack/sheet/metal/cyborg/get_amount()
+	return get_reservoir_amount(src, 1)
+
+/obj/item/stack/sheet/metal/cyborg/use(used)
+	return use_reservoir(src, used, 1)
+
+/obj/item/stack/sheet/metal/cyborg/add(extra)
+	return FALSE
+
+/obj/item/stack/sheet/metal/cyborg/change_stack(mob/user, new_amount)
+	return
+
+/obj/item/stack/barbed_wire/cyborg
+	max_amount = CYBORG_METAL_RESERVE_MAX / CYBORG_BARBED_WIRE_COST
+	merge_type = /obj/item/stack/barbed_wire/cyborg
+
+/obj/item/stack/barbed_wire/cyborg/get_amount()
+	return get_reservoir_amount(src, CYBORG_BARBED_WIRE_COST)
+
+/obj/item/stack/barbed_wire/cyborg/use(used)
+	return use_reservoir(src, used, CYBORG_BARBED_WIRE_COST)
+
+/obj/item/stack/barbed_wire/cyborg/add(extra)
+	return FALSE
+
+/obj/item/stack/barbed_wire/cyborg/change_stack(mob/user, new_amount)
+	return
+
+/obj/item/stack/razorwire/cyborg
+	max_amount = CYBORG_METAL_RESERVE_MAX / CYBORG_RAZORWIRE_COST
+	merge_type = /obj/item/stack/razorwire/cyborg
+
+/obj/item/stack/razorwire/cyborg/get_amount()
+	return get_reservoir_amount(src, CYBORG_RAZORWIRE_COST)
+
+/obj/item/stack/razorwire/cyborg/use(used)
+	return use_reservoir(src, used, CYBORG_RAZORWIRE_COST)
+
+/obj/item/stack/razorwire/cyborg/add(extra)
+	return FALSE
+
+/obj/item/stack/razorwire/cyborg/change_stack(mob/user, new_amount)
+	return
