@@ -88,6 +88,10 @@ GLOBAL_LIST_EMPTY(radial_menus)
 //If we swap to vis_contens inventory these will need a redo
 /datum/radial_menu/proc/check_screen_border(mob/user)
 	var/atom/movable/AM = anchor
+	//Something we carry that is not drawn on our hud, like a cyborg's selected tool, can not be the anchor: it is inside us, so a menu on it is never drawn
+	if(istype(AM) && AM.loc == user && !AM.screen_loc)
+		anchor = user
+		return
 	if(!istype(AM) || !AM.screen_loc)
 		return
 	if(AM in user.client.screen)
