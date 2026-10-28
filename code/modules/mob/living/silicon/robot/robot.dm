@@ -67,6 +67,7 @@
 		. += span_notice("It is a [module.name] model.")
 	if(stat == DEAD)
 		. += span_deadsay("It is powered down.")
+		. += span_notice("Its cover is [cover_open ? "open" : "closed"].")
 		return
 	if(getBruteLoss() > maxHealth * 0.25)
 		. += span_warning("Its plating is dented and scored.")
@@ -135,6 +136,12 @@
 /mob/living/silicon/robot/attackby(obj/item/I, mob/living/user, params)
 	if(user.a_intent != INTENT_HELP)
 		return ..()
+
+	if(is_cover_tool(I))
+		return toggle_cover(user, I)
+
+	if(is_reboot_tool(I))
+		return try_reboot(user, I)
 
 	if(istype(I, /obj/item/tool/weldingtool))
 		if(!getBruteLoss())
