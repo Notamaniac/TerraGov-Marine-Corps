@@ -97,11 +97,11 @@
 ///An omnitool with the tools of an engineer
 /obj/item/tool/cyborg_omnitool/engineering
 	tool_forms = list(
-		/obj/item/tool/wrench,
-		/obj/item/tool/screwdriver,
-		/obj/item/tool/wirecutters,
-		/obj/item/tool/crowbar,
-		/obj/item/tool/multitool,
+		/obj/item/tool/wrench/cyborg,
+		/obj/item/tool/screwdriver/cyborg,
+		/obj/item/tool/wirecutters/cyborg,
+		/obj/item/tool/crowbar/cyborg,
+		/obj/item/tool/multitool/cyborg,
 	)
 
 ///An omnitool with every tool of a surgeon

@@ -33,11 +33,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	cyborg_base_icon = "engineer"
 	transform_time = 4.5 SECONDS
 	item_types = list(
-		/obj/item/tool/wrench,
-		/obj/item/tool/screwdriver,
-		/obj/item/tool/wirecutters,
-		/obj/item/tool/crowbar,
-		/obj/item/tool/weldingtool,
+		/obj/item/tool/weldingtool/cyborg,
 		/obj/item/tool/cyborg_omnitool/engineering,
 		/obj/item/tool/cyborg_omnitool/engineering,
 		/obj/item/stack/cable_coil,
