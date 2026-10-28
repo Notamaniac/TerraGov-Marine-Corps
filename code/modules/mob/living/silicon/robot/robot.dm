@@ -40,6 +40,9 @@
 	. = ..()
 	real_name = "[initial(real_name)] [rand(100, 999)]"
 	name = real_name
+	//Spawned through the job system we are given skills anyway. Building reads them though, so a borg created any other way still needs some
+	if(!skills)
+		set_skills(getSkillsType(/datum/skills/synthetic))
 	var/datum/atom_hud/squad_hud = GLOB.huds[DATA_HUD_SQUAD_TERRAGOV]
 	squad_hud.add_hud_to(src)
 	update_cyborg_icon()
@@ -98,6 +101,19 @@
 	update_cyborg_icon() //Eyes and lamp go dark
 	to_chat(src, "<b>[span_deadsay("<p style='font-size:1.5em'><big>You have been shut down.</big></p>")]</b>")
 	return ..()
+
+// ***************************************
+// *********** Gibbing
+// ***************************************
+//Cyborgs fall apart into robot debris (silicon spawn_gibs) with oil instead of blood
+/mob/living/silicon/robot/get_blood_color()
+	return "#030303"
+
+//The silicon gib animation flicks a state that mob.dmi doesn't have, so the debris and a burst of sparks are all there is to see
+/mob/living/silicon/robot/gib_animation()
+	var/datum/effect_system/spark_spread/sparks = new
+	sparks.set_up(5, 0, get_turf(src))
+	sparks.start()
 
 //Cyborgs don't breathe
 /mob/living/silicon/robot/adjustOxyLoss(amount)
