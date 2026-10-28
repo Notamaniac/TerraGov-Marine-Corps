@@ -43,6 +43,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		/obj/item/stack/barbed_wire/cyborg,
 		/obj/item/stack/razorwire/cyborg,
 		/obj/item/stack/sheet/plasteel,
+		/obj/item/cyborg_meson_scanner,
 		/obj/item/flash
 	)
 
@@ -310,3 +311,17 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 
 /obj/item/stack/razorwire/cyborg/change_stack(mob/user, new_amount)
 	return
+
+// ***************************************
+// *********** Meson scanner
+// ***************************************
+/**
+ * Gives the cyborg meson vision for as long as it is the tool the cyborg has selected, the same as a pair of optical meson goggles.
+ * The sight itself is set by the cyborg, see update_sight() in robot_inventory.dm.
+ */
+/obj/item/cyborg_meson_scanner
+	name = "optical meson scanner"
+	desc = "Scans the surroundings with meson radiation, letting a cyborg see the structure of what is around it. Only works while it is the tool you have selected."
+	icon = 'icons/obj/clothing/glasses.dmi'
+	icon_state = "meson"
+	w_class = WEIGHT_CLASS_SMALL

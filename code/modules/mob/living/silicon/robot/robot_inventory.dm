@@ -5,11 +5,21 @@
 
 ///Tells the HUD to redraw the slots and, if it is open, the tool panel
 /mob/living/silicon/robot/proc/update_module_hud()
+	//What we have selected changes what we see, and every change to it ends up here
+	update_sight()
 	var/datum/hud/robot/robot_hud = hud_used
 	if(!istype(robot_hud))
 		return
 	robot_hud.update_slots()
 	robot_hud.refresh_panel()
+
+//Sight is only ever changed by the tool we have selected
+/mob/living/silicon/robot/update_sight()
+	var/new_sight = initial(sight)
+	if(stat != DEAD && istype(selected_item, /obj/item/cyborg_meson_scanner))
+		new_sight |= SEE_TURFS
+	set_sight(new_sight)
+	return ..()
 
 ///Returns the number of the slot a tool is in, or 0 if it is not in one
 /mob/living/silicon/robot/proc/get_slot_of(obj/item/checked_item)

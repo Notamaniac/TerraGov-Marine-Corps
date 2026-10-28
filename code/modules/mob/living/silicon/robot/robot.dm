@@ -107,6 +107,7 @@
 /mob/living/silicon/robot/on_death()
 	set_remote_interface(FALSE)
 	selected_item = null
+	update_sight()
 	var/datum/hud/robot/robot_hud = hud_used
 	if(istype(robot_hud))
 		robot_hud.close_panel()
