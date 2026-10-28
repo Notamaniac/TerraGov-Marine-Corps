@@ -76,7 +76,7 @@
 
 ///The menu closes itself when this stops being true
 /obj/item/tool/cyborg_omnitool/proc/can_use_menu(mob/user)
-	return !QDELETED(src) && !QDELETED(user) && user.get_active_held_item() == src && !user.incapacitated()
+	return !QDELETED(src) && !QDELETED(user) && user.is_holding(src) && !user.incapacitated()
 
 //Using it always opens the menu, again and again
 /obj/item/tool/cyborg_omnitool/attack_self(mob/user)
@@ -94,10 +94,7 @@
 	active_form.melee_attack_chain(user, target, params, params2list(params)[RIGHT_CLICK])
 	return TRUE
 
-/**
- * An omnitool with the tools of an engineer.
- * Not handed out to any module yet, it is here as the example of how a subtype lists its forms.
- */
+///An omnitool with the tools of an engineer
 /obj/item/tool/cyborg_omnitool/engineering
 	tool_forms = list(
 		/obj/item/tool/wrench,
@@ -105,4 +102,20 @@
 		/obj/item/tool/wirecutters,
 		/obj/item/tool/crowbar,
 		/obj/item/tool/multitool,
+	)
+
+///An omnitool with every tool of a surgeon
+/obj/item/tool/cyborg_omnitool/surgical
+	tool_forms = list(
+		/obj/item/tool/surgery/scalpel,
+		/obj/item/tool/surgery/hemostat,
+		/obj/item/tool/surgery/retractor,
+		/obj/item/tool/surgery/cautery,
+		/obj/item/tool/surgery/circular_saw,
+		/obj/item/tool/surgery/surgicaldrill,
+		/obj/item/tool/surgery/bonegel,
+		/obj/item/tool/surgery/bonesetter,
+		/obj/item/tool/surgery/FixOVein,
+		/obj/item/tool/surgery/suture,
+		/obj/item/tool/surgery/surgical_membrane,
 	)

@@ -194,6 +194,9 @@
 /mob/living/silicon/robot/get_held_item()
 	return selected_item
 
+/mob/living/silicon/robot/get_active_held_item()
+	return selected_item
+
 /mob/living/silicon/robot/get_inactive_held_item()
 	return null
 

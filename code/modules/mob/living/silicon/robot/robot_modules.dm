@@ -38,6 +38,8 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		/obj/item/tool/wirecutters,
 		/obj/item/tool/crowbar,
 		/obj/item/tool/weldingtool,
+		/obj/item/tool/cyborg_omnitool/engineering,
+		/obj/item/tool/cyborg_omnitool/engineering,
 		/obj/item/stack/cable_coil,
 		/obj/item/stack/sheet/metal/cyborg,
 		/obj/item/stack/barbed_wire/cyborg,
@@ -59,6 +61,8 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		/obj/item/stack/medical/heal_pack/advanced/bruise_pack,
 		/obj/item/stack/medical/heal_pack/advanced/burn_pack,
 		/obj/item/stack/medical/splint,
+		/obj/item/tool/cyborg_omnitool/surgical,
+		/obj/item/tool/cyborg_omnitool/surgical,
 	)
 	huds = list(DATA_HUD_MEDICAL_OBSERVER)
 
