@@ -229,6 +229,9 @@
 	var/obj/item/shown_item
 	///Is our tool the one the cyborg is using
 	var/selected = FALSE
+	///The icon and icon state of the tool as we last drew it, a tool changes how it looks when it is switched on or turns into another one
+	var/shown_icon
+	var/shown_icon_state
 
 /atom/movable/screen/robot/module_slot/Initialize(mapload, datum/hud/hud_owner, slot_num = 1)
 	. = ..()
@@ -245,6 +248,7 @@
 
 /atom/movable/screen/robot/module_slot/Destroy()
 	shown_item = null
+	shown_icon = null
 	return ..()
 
 ///Changes what we show, only redrawing if something actually changed
@@ -253,9 +257,11 @@
 	if(istype(new_item, /obj/item/stack))
 		var/obj/item/stack/new_stack = new_item
 		new_text = MAPTEXT_TINY_UNICODE("<div align='right'>[new_stack.amount]</div>")
-	if(shown_item == new_item && selected == new_selected && maptext == new_text)
+	if(shown_item == new_item && selected == new_selected && maptext == new_text && shown_icon == new_item?.icon && shown_icon_state == new_item?.icon_state)
 		return
 	shown_item = new_item
+	shown_icon = new_item?.icon
+	shown_icon_state = new_item?.icon_state
 	selected = new_selected
 	maptext = new_text
 	name = new_item ? "module [slot_num]: [new_item.name]" : "module [slot_num]"
