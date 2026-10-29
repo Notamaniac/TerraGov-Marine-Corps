@@ -148,3 +148,9 @@ OPERATIONS
 	name = "Tadpole rappel system cord"
 	contains = list(/obj/item/spare_cord)
 	cost = 300
+
+/datum/supply_packs/operations/cyborg_shell
+	name = "Inactive cyborg shell"
+	notes = "A cyborg with nobody in it. A ghost can take it over, and it picks its module once it is switched on"
+	contains = list(/mob/living/silicon/robot/shell)
+	cost = 250

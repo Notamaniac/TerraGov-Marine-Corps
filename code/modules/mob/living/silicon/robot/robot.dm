@@ -79,8 +79,11 @@
 
 /mob/living/silicon/robot/shell/Initialize(mapload)
 	. = ..()
-	//Quietly, it is a place to take over when a ghost looks for one. Use the Offer Mob verb or offer_mob() to announce it
-	GLOB.offered_mob_list += src
+	//One that is part of the map is only on the list for a ghost that looks for one, one that turns up later is announced to the ghosts
+	if(mapload)
+		GLOB.offered_mob_list += src
+		return
+	offer_mob()
 
 //Asks a ghost that clicks a shell if it wants to take it over
 /mob/living/silicon/robot/attack_ghost(mob/dead/observer/user)
