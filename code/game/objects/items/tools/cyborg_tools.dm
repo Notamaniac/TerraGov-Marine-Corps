@@ -42,6 +42,7 @@
 	icon_state = welding ? "[base_icon_state]-on" : base_icon_state
 
 /obj/item/tool/weldingtool/cyborg/update_overlays()
+	..()
 	return list()
 
 /**

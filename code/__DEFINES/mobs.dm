@@ -1058,3 +1058,11 @@ GLOBAL_LIST_INIT(ai_damtype_to_heal_list, list(
 // Cyborgs
 ///How many tools a cyborg can have equipped at once
 #define CYBORG_SLOT_COUNT 3
+///How much metal a cyborg's reservoir holds. Metal sheets, barbed wire and razor wire are all made out of it
+#define CYBORG_METAL_RESERVE_MAX 100
+///How much plasteel a cyborg's reservoir holds
+#define CYBORG_PLASTEEL_RESERVE_MAX 50
+///How much metal one barbed wire takes from the reservoir
+#define CYBORG_BARBED_WIRE_COST 1
+///How much metal one razor wire takes from the reservoir
+#define CYBORG_RAZORWIRE_COST 2
