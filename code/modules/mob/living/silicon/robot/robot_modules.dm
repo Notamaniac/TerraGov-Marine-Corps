@@ -202,6 +202,9 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	cut_overlays()
 	var/base_state = module ? module.cyborg_base_icon : initial(icon_state)
 	icon_state = base_state
+	//An open cover shows whether our cell is in
+	if(cover_open)
+		add_overlay(cell ? "ov-opencover +c" : "ov-opencover -c")
 	if(stat == DEAD || inactive_shell || !icon_exists(icon, "[base_state]_e"))
 		return
 	add_overlay("[base_state]_e")

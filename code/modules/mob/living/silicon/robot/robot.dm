@@ -307,6 +307,8 @@
 		return TRUE
 	tool.play_tool_sound(src, 50)
 	cover_open = !cover_open
+	if(!notransform)
+		update_cyborg_icon()
 	user.visible_message(span_notice("[user] [cover_open ? "pries open" : "closes"] [src]'s cover."), span_notice("You [cover_open ? "pry open" : "close"] [src]'s cover."))
 	return TRUE
 
@@ -455,6 +457,8 @@
 	cell = new_cell
 	low_power_warned = FALSE
 	update_power_state()
+	if(!notransform)
+		update_cyborg_icon()
 	user.visible_message(span_notice("[user] puts [new_cell] in [src]."), span_notice("You put [new_cell] in [src]."))
 	return TRUE
 
@@ -467,6 +471,8 @@
 		return
 	var/obj/item/cell/old_cell = cell
 	cell = null
+	if(!notransform)
+		update_cyborg_icon()
 	if(!user.put_in_hands(old_cell))
 		old_cell.forceMove(drop_location())
 	user.visible_message(span_notice("[user] pulls the power cell out of [src]."), span_notice("You pull the power cell out of [src]."))
