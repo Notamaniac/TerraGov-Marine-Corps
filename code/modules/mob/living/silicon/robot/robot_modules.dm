@@ -202,7 +202,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	cut_overlays()
 	var/base_state = module ? module.cyborg_base_icon : initial(icon_state)
 	icon_state = base_state
-	if(stat == DEAD || !icon_exists(icon, "[base_state]_e"))
+	if(stat == DEAD || inactive_shell || !icon_exists(icon, "[base_state]_e"))
 		return
 	add_overlay("[base_state]_e")
 	if(lamp_level && icon_exists(icon, "[base_state]_l"))

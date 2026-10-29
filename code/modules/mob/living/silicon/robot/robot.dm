@@ -51,6 +51,8 @@
 	var/cell_type = /obj/item/cell/high
 	///Have we warned that our power is running low
 	var/low_power_warned = FALSE
+	///Is this an empty shell without a player. A ghost can take it over, until then it is switched off and does not use power
+	var/inactive_shell = FALSE
 	///Set while our cell is empty or missing. Without power we can't use our tools or our headlamp, we get both back once there is power again
 	var/out_of_power = FALSE
 
@@ -65,6 +67,53 @@
 	var/datum/atom_hud/squad_hud = GLOB.huds[DATA_HUD_SQUAD_TERRAGOV]
 	squad_hud.add_hud_to(src)
 	update_cyborg_icon()
+
+/**
+ * A cyborg shell nobody is playing. It is on the list of mobs ghosts can take over, and a ghost can also click it to be asked.
+ * Whoever takes it over becomes a cyborg that has not chosen a module yet.
+ */
+/mob/living/silicon/robot/shell
+	name = "inactive cyborg shell"
+	desc = "A cyborg that has not been switched on yet. Nobody is home."
+	inactive_shell = TRUE
+
+/mob/living/silicon/robot/shell/Initialize(mapload)
+	. = ..()
+	//Quietly, it is a place to take over when a ghost looks for one. Use the Offer Mob verb or offer_mob() to announce it
+	GLOB.offered_mob_list += src
+
+//Asks a ghost that clicks a shell if it wants to take it over
+/mob/living/silicon/robot/attack_ghost(mob/dead/observer/user)
+	if(!inactive_shell || client)
+		return ..()
+	if(tgui_alert(user, "Take over this inactive cyborg shell?", "Cyborg Shell", list("Yes", "No")) != "Yes")
+		return TRUE
+	//Someone could have been quicker while we were asking
+	if(!inactive_shell || client || QDELETED(src) || QDELETED(user))
+		to_chat(user, span_warning("That shell has already been taken."))
+		return TRUE
+	take_over(user)
+	return TRUE
+
+/mob/living/silicon/robot/take_over(mob/M, bypass)
+	if(inactive_shell && !bypass && is_banned_from(M.ckey, SILICON_CYBORG))
+		to_chat(M, span_warning("You are jobbanned from that role."))
+		return FALSE
+	. = ..()
+	if(!. || !inactive_shell)
+		return
+	switch_on_shell()
+
+///A player now runs this shell, it switches on and takes the name chosen in the character setup
+/mob/living/silicon/robot/proc/switch_on_shell()
+	inactive_shell = FALSE
+	var/chosen_name = client?.prefs?.cyborg_name
+	if(chosen_name && !is_banned_from(ckey, "Appearance"))
+		custom_name = chosen_name
+		fully_replace_character_name(real_name, custom_name)
+	update_names_joined_list(real_name)
+	update_cyborg_icon()
+	to_chat(src, span_notice("You switch on. Choose a module to begin."))
 
 /mob/living/silicon/robot/Destroy()
 	QDEL_NULL(cell)
@@ -85,6 +134,8 @@
 	. = ..()
 	if(module)
 		. += span_notice("It is a [module.name] model.")
+	if(inactive_shell)
+		. += span_notice("It is switched off and waiting for someone to take it over.")
 	. += span_notice("Its cover is [cover_open ? "open" : "closed"] and [cover_locked ? "locked" : "unlocked"].")
 	if(cover_open)
 		. += cell ? span_notice("Its power cell reads [round(cell.percent())]%.") : span_warning("Its power cell is missing.")
@@ -340,7 +391,7 @@
 
 ///Takes this tick's power from the cell. If it can't give it we are out of power
 /mob/living/silicon/robot/proc/drain_cell()
-	if(status_flags & GODMODE)
+	if(status_flags & GODMODE || inactive_shell)
 		return
 	if(!cell?.use(CYBORG_CELL_DRAIN))
 		set_out_of_power(TRUE)
