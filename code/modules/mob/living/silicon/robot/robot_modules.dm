@@ -42,6 +42,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		/obj/item/stack/razorwire/cyborg,
 		/obj/item/stack/sheet/plasteel/cyborg,
 		/obj/item/cyborg_sheet_snatcher,
+		/obj/item/cyborg_manipulator,
 		/obj/item/cyborg_meson_scanner,
 		/obj/item/flash
 	)

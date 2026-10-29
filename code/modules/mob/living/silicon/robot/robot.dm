@@ -529,7 +529,7 @@
 // *********** Interaction
 // ***************************************
 /mob/living/silicon/robot/get_active_held_item()
-	return selected_item
+	return get_hand_item()
 
 //We have no way to throw anything, our tools never leave us
 /mob/living/silicon/robot/throw_item(atom/target)

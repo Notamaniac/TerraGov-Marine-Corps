@@ -233,6 +233,8 @@
 	///The icon and icon state of the tool as we last drew it, a tool changes how it looks when it is switched on or turns into another one
 	var/shown_icon
 	var/shown_icon_state
+	///The item a manipulator in the slot holds, which is drawn on it
+	var/obj/item/shown_held
 	///Is the slot knocked out by damage
 	var/disabled = FALSE
 
@@ -251,6 +253,7 @@
 
 /atom/movable/screen/robot/module_slot/Destroy()
 	shown_item = null
+	shown_held = null
 	shown_icon = null
 	return ..()
 
@@ -260,8 +263,11 @@
 	if(istype(new_item, /obj/item/stack))
 		var/obj/item/stack/new_stack = new_item
 		new_text = MAPTEXT_TINY_UNICODE("<div align='right'>[new_stack.amount]</div>")
-	if(shown_item == new_item && selected == new_selected && maptext == new_text && shown_icon == new_item?.icon && shown_icon_state == new_item?.icon_state)
+	var/obj/item/cyborg_manipulator/hand = new_item
+	var/obj/item/new_held = istype(hand) ? hand.get_held() : null
+	if(shown_item == new_item && selected == new_selected && maptext == new_text && shown_icon == new_item?.icon && shown_icon_state == new_item?.icon_state && shown_held == new_held)
 		return
+	shown_held = new_held
 	shown_item = new_item
 	shown_icon = new_item?.icon
 	shown_icon_state = new_item?.icon_state
@@ -286,6 +292,10 @@
 	. = ..()
 	if(shown_item)
 		. += mutable_appearance(shown_item.icon, shown_item.icon_state)
+	if(shown_held)
+		var/mutable_appearance/held_appearance = mutable_appearance(shown_held.icon, shown_held.icon_state)
+		held_appearance.transform = matrix().Scale(0.6, 0.6)
+		. += held_appearance
 
 //A slot knocked out by damage does nothing. Left click readies the tool. On a ready tool, a click on the tool uses it (opens the construction menu of a sheet and so on) and a click on the frame lowers it. Right click puts it back on the panel
 /atom/movable/screen/robot/module_slot/Click(location, control, params)

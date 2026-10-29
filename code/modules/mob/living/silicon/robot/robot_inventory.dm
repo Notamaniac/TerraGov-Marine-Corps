@@ -250,8 +250,15 @@
  * The tool in our selected slot stands in for a hand. Plenty of code asks a mob what it holds by looking at its l_hand and r_hand,
  * which we never use, so every one of those helpers is answered from selected_item instead.
  */
-/mob/living/silicon/robot/get_held_item()
+///What we hold in the way of a hand. It is our selected tool, unless that is a manipulator with something in it, then it is that
+/mob/living/silicon/robot/proc/get_hand_item()
+	var/obj/item/cyborg_manipulator/hand = selected_item
+	if(istype(hand))
+		return hand.get_held() || hand
 	return selected_item
+
+/mob/living/silicon/robot/get_held_item()
+	return get_hand_item()
 
 /mob/living/silicon/robot/get_inactive_held_item()
 	return null
@@ -260,9 +267,12 @@
 	. = list()
 	if(selected_item)
 		. += selected_item
+	var/obj/item/hand_item = get_hand_item()
+	if(hand_item && hand_item != selected_item)
+		. += hand_item
 
 /mob/living/silicon/robot/is_holding(obj/item/checked_item)
-	return !!checked_item && checked_item == selected_item
+	return !!checked_item && (checked_item == selected_item || checked_item == get_hand_item())
 
 ///Wirecutters, multitools and the like only count while they are the selected tool
 /mob/living/silicon/robot/is_holding_tool_quality(quality)

@@ -84,3 +84,89 @@
 	borg.sync_reservoir()
 	playsound(borg, 'sound/items/deconstruct.ogg', 25, TRUE)
 	borg.balloon_alert(borg, "+[taken] [is_metal ? "metal" : "plasteel"]")
+
+/**
+ * The hand of a cyborg. While it is the selected tool and holds an item, that item is what the cyborg holds, so clicking
+ * something uses the item on it. With nothing in it, clicking an item on the whitelist picks it up.
+ * Using it (the use key, or the Activate Held Object verb) drops what it holds.
+ */
+/obj/item/cyborg_manipulator
+	name = "manipulator"
+	desc = "A robotic hand. Click a suitable item to pick it up, then click something to use the item on it. Use the manipulator itself to drop the item."
+	icon = 'icons/obj/items_cyborg.dmi'
+	//Placeholder sprite
+	icon_state = "sili"
+	w_class = WEIGHT_CLASS_SMALL
+	item_flags = NOBLUDGEON
+	///The item it is holding, only trust get_held()
+	var/obj/item/held_item
+	///The types of item it can pick up, subtypes included. Add to this list to let it hold more
+	var/static/list/whitelist = typecacheof(list(
+		/obj/item/circuitboard,
+		/obj/item/frame/apc,
+		/obj/item/cell,
+	))
+
+/obj/item/cyborg_manipulator/Destroy()
+	var/obj/item/dropped_item = get_held()
+	if(dropped_item)
+		dropped_item.forceMove(get_turf(src))
+	held_item = null
+	return ..()
+
+/obj/item/cyborg_manipulator/examine(mob/user)
+	. = ..()
+	var/obj/item/shown_held = get_held()
+	. += shown_held ? span_notice("It is holding [shown_held].") : span_notice("It is empty.")
+
+///What it is holding, an item that was taken out of it by anything is forgotten
+/obj/item/cyborg_manipulator/proc/get_held()
+	if(held_item && held_item.loc != src)
+		held_item = null
+	return held_item
+
+///Can it pick this up
+/obj/item/cyborg_manipulator/proc/can_hold(atom/target)
+	return is_type_in_typecache(target, whitelist)
+
+///Tells the cyborg's HUD what we hold
+/obj/item/cyborg_manipulator/proc/update_borg_hud(mob/user)
+	var/mob/living/silicon/robot/borg = user
+	if(istype(borg))
+		borg.update_module_hud()
+
+//Empty, it picks things up. Holding something, anything that reaches this uses the item instead
+/obj/item/cyborg_manipulator/preattack(atom/target, mob/user, params)
+	var/obj/item/shown_held = get_held()
+	if(shown_held)
+		if(target == shown_held)
+			return TRUE
+		shown_held.melee_attack_chain(user, target, params, params2list(params)[RIGHT_CLICK])
+		update_borg_hud(user)
+		return TRUE
+	if(!isitem(target) || !user.Adjacent(target))
+		return ..()
+	if(!can_hold(target))
+		user.balloon_alert(user, "can't hold that")
+		return TRUE
+	var/obj/item/picked_item = target
+	if(picked_item.anchored || !isturf(picked_item.loc))
+		user.balloon_alert(user, "can't pick that up")
+		return TRUE
+	picked_item.forceMove(src)
+	held_item = picked_item
+	user.visible_message(span_notice("[user] picks up [picked_item]."), span_notice("You pick up [picked_item]."))
+	playsound(user, 'sound/machines/click.ogg', 15, TRUE)
+	update_borg_hud(user)
+	return TRUE
+
+///Drops what it holds
+/obj/item/cyborg_manipulator/attack_self(mob/user)
+	var/obj/item/dropped_item = get_held()
+	if(!dropped_item)
+		user.balloon_alert(user, "nothing to drop")
+		return
+	dropped_item.forceMove(user.drop_location())
+	held_item = null
+	user.visible_message(span_notice("[user] drops [dropped_item]."), span_notice("You drop [dropped_item]."))
+	update_borg_hud(user)
