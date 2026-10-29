@@ -995,6 +995,7 @@
 #include "code\game\objects\items\cocoon.dm"
 #include "code\game\objects\items\coins.dm"
 #include "code\game\objects\items\cosmetics.dm"
+#include "code\game\objects\items\cyborg_boards.dm"
 #include "code\game\objects\items\debugger.dm"
 #include "code\game\objects\items\defibrillator.dm"
 #include "code\game\objects\items\disks.dm"

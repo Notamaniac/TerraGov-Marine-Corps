@@ -169,6 +169,10 @@
 	if(istype(I, /obj/item/cell))
 		return try_insert_cell(user, I)
 
+	if(istype(I, /obj/item/cyborg_board))
+		var/obj/item/cyborg_board/board = I
+		return board.try_install(src, user)
+
 	if(is_cover_tool(I))
 		return toggle_cover(user, I)
 
@@ -306,6 +310,8 @@
 	sparks.start()
 	playsound(src, 'sound/machines/ping.ogg', 40, TRUE)
 	to_chat(src, span_notice("<b>You have been rebooted. All systems nominal.</b>"))
+	if(!module && client)
+		INVOKE_ASYNC(src, PROC_REF(prompt_module_choice))
 
 // ***************************************
 // *********** Power

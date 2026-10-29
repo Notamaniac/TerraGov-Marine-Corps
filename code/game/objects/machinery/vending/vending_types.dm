@@ -906,6 +906,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/vending/nanoammo, (-26))
 		/obj/item/t_scanner = -1,
 		/obj/item/circuitboard/apc = -1,
 		/obj/item/circuitboard/airlock = -1,
+		/obj/item/cyborg_board/reset = -1,
 		/obj/item/cell/high = 10,
 		/obj/item/clothing/head/hardhat = 4,
 		/obj/item/clothing/head/welding = 4,

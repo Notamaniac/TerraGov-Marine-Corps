@@ -136,6 +136,41 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	play_module_transform()
 	return TRUE
 
+///Takes our module away, with everything it gave us, so we are as we were before we chose one and have to choose again
+/mob/living/silicon/robot/proc/reset_module()
+	if(!module)
+		return FALSE
+	for(var/hud_define in module.huds)
+		var/datum/atom_hud/module_hud = GLOB.huds[hud_define]
+		module_hud.remove_hud_from(src)
+	//These are removed on purpose, they must not be replaced
+	for(var/obj/item/module_item AS in module_items)
+		UnregisterSignal(module_item, COMSIG_QDELETING)
+		qdel(module_item)
+	module_items.Cut()
+	reservoir_stacks.Cut()
+	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
+		slot_items[slot_num] = null
+	selected_item = null
+	QDEL_NULL(module)
+
+	if(!custom_name)
+		var/old_name = real_name
+		fully_replace_character_name(old_name, "[initial(real_name)] [rand(100, 999)]")
+		update_names_joined_list(real_name, old_name)
+
+	update_cyborg_icon()
+	close_module_panel()
+	update_module_hud()
+	var/datum/hud/robot/robot_hud = hud_used
+	if(istype(robot_hud))
+		robot_hud.update_module_button()
+	to_chat(src, span_warning("Your module has been wiped, you have to choose a new one."))
+	//A shut down cyborg is asked once it is rebooted
+	if(client && stat != DEAD)
+		INVOKE_ASYNC(src, PROC_REF(prompt_module_choice))
+	return TRUE
+
 ///Plays the animation of our body being rebuilt for the module, we cannot move or act until it is over
 /mob/living/silicon/robot/proc/play_module_transform()
 	if(!module?.transform_time || !icon_exists(icon, "[module.cyborg_base_icon]_transform"))
