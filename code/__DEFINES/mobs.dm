@@ -1058,6 +1058,10 @@ GLOBAL_LIST_INIT(ai_damtype_to_heal_list, list(
 // Cyborgs
 ///How many tools a cyborg can have equipped at once
 #define CYBORG_SLOT_COUNT 3
+///The share of its integrity a cyborg has to lose to lose each of its slots, in the order of the slots. The last slot goes first
+#define CYBORG_SLOT_DISABLE_DAMAGE list(0.85, 0.65, 0.4)
+///The slowdown of a cyborg at the brink of being shut down, it scales with how much damage it has
+#define CYBORG_DAMAGE_MAX_SLOWDOWN 1
 ///How much metal a cyborg's reservoir holds. Metal sheets, barbed wire and razor wire are all made out of it
 #define CYBORG_METAL_RESERVE_MAX 100
 ///How much plasteel a cyborg's reservoir holds

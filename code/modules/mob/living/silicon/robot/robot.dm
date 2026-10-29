@@ -27,6 +27,8 @@
 	var/list/obj/item/module_items = list()
 	///The tools in our slots, null for an empty slot. One entry per slot
 	var/list/obj/item/slot_items = list(null, null, null)
+	///Is the slot knocked out by damage, one entry per slot. Damaged cyborgs lose their last slot first
+	var/list/slot_disabled = list(FALSE, FALSE, FALSE)
 	///The tool we are currently using, always one of slot_items
 	var/obj/item/selected_item
 	///How bright our headlamp is, 0 is off. See robot_lamp.dm
@@ -92,6 +94,7 @@
 
 /mob/living/silicon/robot/updatehealth()
 	. = ..()
+	update_damage_effects()
 	var/datum/hud/robot/robot_hud = hud_used
 	if(istype(robot_hud))
 		robot_hud.update_health()
@@ -256,6 +259,7 @@
 	cover_open = FALSE
 	revive()
 	notransform = FALSE
+	update_damage_effects()
 	update_cyborg_icon()
 	var/datum/hud/robot/robot_hud = hud_used
 	if(istype(robot_hud))

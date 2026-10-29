@@ -93,6 +93,7 @@
 		var/atom/movable/screen/robot/module_slot/slot = slots[slot_num]
 		var/obj/item/slot_item = borg.slot_items[slot_num]
 		slot.set_item(slot_item, slot_item && slot_item == borg.selected_item)
+		slot.set_disabled(borg.slot_disabled[slot_num])
 
 ///Shows whether the headlamp is on and at what level
 /datum/hud/robot/proc/update_lamp()
@@ -232,6 +233,8 @@
 	///The icon and icon state of the tool as we last drew it, a tool changes how it looks when it is switched on or turns into another one
 	var/shown_icon
 	var/shown_icon_state
+	///Is the slot knocked out by damage
+	var/disabled = FALSE
 
 /atom/movable/screen/robot/module_slot/Initialize(mapload, datum/hud/hud_owner, slot_num = 1)
 	. = ..()
@@ -264,8 +267,16 @@
 	shown_icon_state = new_item?.icon_state
 	selected = new_selected
 	maptext = new_text
-	name = new_item ? "module [slot_num]: [new_item.name]" : "module [slot_num]"
+	name = disabled ? "module [slot_num] (offline)" : (new_item ? "module [slot_num]: [new_item.name]" : "module [slot_num]")
 	update_icon()
+
+///A slot knocked out by damage is drawn dark red
+/atom/movable/screen/robot/module_slot/proc/set_disabled(new_disabled)
+	if(disabled == new_disabled)
+		return
+	disabled = new_disabled
+	color = disabled ? "#702020" : null
+	name = disabled ? "module [slot_num] (offline)" : (shown_item ? "module [slot_num]: [shown_item.name]" : "module [slot_num]")
 
 /atom/movable/screen/robot/module_slot/update_icon_state()
 	. = ..()
@@ -276,12 +287,15 @@
 	if(shown_item)
 		. += mutable_appearance(shown_item.icon, shown_item.icon_state)
 
-//Left click readies the tool. On a ready tool, a click on the tool uses it (opens the construction menu of a sheet and so on) and a click on the frame lowers it. Right click puts it back on the panel
+//A slot knocked out by damage does nothing. Left click readies the tool. On a ready tool, a click on the tool uses it (opens the construction menu of a sheet and so on) and a click on the frame lowers it. Right click puts it back on the panel
 /atom/movable/screen/robot/module_slot/Click(location, control, params)
 	. = ..()
 	if(.)
 		return
 	var/mob/living/silicon/robot/borg = usr
+	if(disabled)
+		borg.balloon_alert(borg, "slot offline")
+		return
 	var/list/modifiers = params2list(params)
 	if(modifiers[RIGHT_CLICK])
 		borg.unequip_slot(slot_num)

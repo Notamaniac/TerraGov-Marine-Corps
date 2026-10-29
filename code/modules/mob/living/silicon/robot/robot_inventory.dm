@@ -21,6 +21,62 @@
 	set_sight(new_sight)
 	return ..()
 
+// ***************************************
+// *********** Damage
+// ***************************************
+///The share of our integrity that is gone, 0 when undamaged and 1 when shut down
+/mob/living/silicon/robot/proc/get_damage_fraction()
+	return clamp((maxHealth - health) / maxHealth, 0, 1)
+
+/**
+ * Damage takes our slots away, the last one first, and slows us down in proportion to it.
+ * A slot is lost once the damage reaches its share of our integrity, see CYBORG_SLOT_DISABLE_DAMAGE.
+ * The tool of a lost slot goes back to the panel and can be equipped again once the slot is repaired.
+ */
+/mob/living/silicon/robot/proc/update_damage_effects()
+	if(stat == DEAD)
+		return
+	var/damage_fraction = get_damage_fraction()
+	if(damage_fraction > 0)
+		add_movespeed_modifier(MOVESPEED_ID_CYBORG_DAMAGE, TRUE, 0, NONE, TRUE, damage_fraction * CYBORG_DAMAGE_MAX_SLOWDOWN)
+	else
+		remove_movespeed_modifier(MOVESPEED_ID_CYBORG_DAMAGE)
+
+	var/slots_changed = FALSE
+	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
+		var/should_be_disabled = damage_fraction >= CYBORG_SLOT_DISABLE_DAMAGE[slot_num]
+		if(slot_disabled[slot_num] == should_be_disabled)
+			continue
+		slot_disabled[slot_num] = should_be_disabled
+		slots_changed = TRUE
+		if(should_be_disabled)
+			disable_slot(slot_num)
+		else
+			to_chat(src, span_notice("Slot [slot_num] is working again."))
+	if(slots_changed)
+		update_module_hud()
+
+///Knocks a slot offline, its tool goes back on the panel
+/mob/living/silicon/robot/proc/disable_slot(slot_num)
+	var/obj/item/lost_item = slot_items[slot_num]
+	if(lost_item)
+		if(istype(lost_item, /obj/item/tool/weldingtool))
+			var/obj/item/tool/weldingtool/welder = lost_item
+			if(welder.welding)
+				welder.toggle()
+		if(lost_item == selected_item)
+			selected_item = null
+		slot_items[slot_num] = null
+	to_chat(src, span_danger("Slot [slot_num] is knocked offline by damage![lost_item ? " Your [lost_item.name] is back on the panel." : ""]"))
+
+///Returns the number of the slots that damage has not taken away
+/mob/living/silicon/robot/proc/get_working_slot_count()
+	var/working = 0
+	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
+		if(!slot_disabled[slot_num])
+			working++
+	return working
+
 ///Returns the number of the slot a tool is in, or 0 if it is not in one
 /mob/living/silicon/robot/proc/get_slot_of(obj/item/checked_item)
 	if(!checked_item)
@@ -42,11 +98,11 @@
 		return FALSE
 	var/free_slot = 0
 	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
-		if(!slot_items[slot_num])
+		if(!slot_items[slot_num] && !slot_disabled[slot_num])
 			free_slot = slot_num
 			break
 	if(!free_slot)
-		to_chat(src, span_warning("All of your slots are full, stow something first."))
+		to_chat(src, span_warning(get_working_slot_count() < CYBORG_SLOT_COUNT ? "All of your working slots are full, stow something first." : "All of your slots are full, stow something first."))
 		return FALSE
 	slot_items[free_slot] = tool
 	to_chat(src, span_notice("You equip your [tool.name] in slot [free_slot]."))
@@ -75,7 +131,7 @@
 	if(slot_num < 1 || slot_num > CYBORG_SLOT_COUNT)
 		return FALSE
 	var/obj/item/new_item = slot_items[slot_num]
-	if(!new_item)
+	if(!new_item || slot_disabled[slot_num])
 		return FALSE
 	selected_item = new_item
 	to_chat(src, span_notice("You ready your [new_item.name]."))
