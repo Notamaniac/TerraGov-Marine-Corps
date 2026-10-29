@@ -41,13 +41,22 @@
 	var/plasteel_reserve = CYBORG_PLASTEEL_RESERVE_MAX
 	///Our module's tools that draw on the reservoirs
 	var/list/obj/item/stack/reservoir_stacks = list()
-	///Is our cover pried open. Only possible while we are shut down
+	///Is our cover pried open
 	var/cover_open = FALSE
+	///Is our cover locked. A cyborg is locked by default, swiping an ID with engineering access toggles it
+	var/cover_locked = TRUE
+	///The power cell that runs us, it is drained every tick and we shut down when it is empty or gone
+	var/obj/item/cell/cell
+	///The type of the cell we start with
+	var/cell_type = /obj/item/cell/high
+	///Have we warned that our power is running low
+	var/low_power_warned = FALSE
 
 /mob/living/silicon/robot/Initialize(mapload)
 	. = ..()
 	real_name = "[initial(real_name)] [rand(100, 999)]"
 	name = real_name
+	cell = new cell_type(src)
 	//Spawned through the job system we are given skills anyway. Building reads them though, so a borg created any other way still needs some
 	if(!skills)
 		set_skills(getSkillsType(/datum/skills/synthetic))
@@ -56,6 +65,7 @@
 	update_cyborg_icon()
 
 /mob/living/silicon/robot/Destroy()
+	QDEL_NULL(cell)
 	selected_item = null
 	slot_items.Cut()
 	for(var/obj/item/module_item AS in module_items)
@@ -73,9 +83,11 @@
 	. = ..()
 	if(module)
 		. += span_notice("It is a [module.name] model.")
+	. += span_notice("Its cover is [cover_open ? "open" : "closed"] and [cover_locked ? "locked" : "unlocked"].")
+	if(cover_open)
+		. += cell ? span_notice("Its power cell reads [round(cell.percent())]%.") : span_warning("Its power cell is missing.")
 	if(stat == DEAD)
 		. += span_deadsay("It is powered down.")
-		. += span_notice("Its cover is [cover_open ? "open" : "closed"].")
 		return
 	if(getBruteLoss() > maxHealth * 0.25)
 		. += span_warning("Its plating is dented and scored.")
@@ -137,6 +149,9 @@
 	. = ..()
 	if(stat == DEAD)
 		return
+	drain_cell()
+	if(stat == DEAD)
+		return
 	//Stack counts on the slots change as the tools get used
 	var/datum/hud/robot/robot_hud = hud_used
 	if(istype(robot_hud))
@@ -145,6 +160,12 @@
 /mob/living/silicon/robot/attackby(obj/item/I, mob/living/user, params)
 	if(user.a_intent != INTENT_HELP)
 		return ..()
+
+	if(istype(I, /obj/item/card/id))
+		return try_swipe_id(user, I)
+
+	if(istype(I, /obj/item/cell))
+		return try_insert_cell(user, I)
 
 	if(is_cover_tool(I))
 		return toggle_cover(user, I)
@@ -183,6 +204,13 @@
 
 	return ..()
 
+//An open cover lets anyone with a free hand pull our cell out
+/mob/living/silicon/robot/attack_hand(mob/living/user)
+	if(user.a_intent == INTENT_HELP && cover_open && cell)
+		remove_cell(user)
+		return TRUE
+	return ..()
+
 ///Prints how damaged we are to ourselves
 /mob/living/silicon/robot/verb/check_integrity()
 	set category = "Cyborg"
@@ -191,6 +219,7 @@
 	if(stat == DEAD)
 		return
 	to_chat(src, span_notice("Integrity: [round(health / maxHealth * 100)]% (structural damage [round(getBruteLoss())], wiring damage [round(getFireLoss())])."))
+	to_chat(src, span_notice("Power: [cell ? "[round(cell.percent())]%" : "no power cell"]."))
 
 // ***************************************
 // *********** Rebooting
@@ -213,8 +242,8 @@
 
 ///Opens or closes our cover. Returns TRUE if the tool was used on us
 /mob/living/silicon/robot/proc/toggle_cover(mob/living/user, obj/item/tool)
-	if(stat != DEAD)
-		balloon_alert(user, "cover is locked while active")
+	if(cover_locked)
+		balloon_alert(user, "cover is locked")
 		return TRUE
 	tool.play_tool_sound(src, 50)
 	cover_open = !cover_open
@@ -226,6 +255,9 @@
 	if(stat != DEAD)
 		balloon_alert(user, "already active")
 		return TRUE
+	if(!cell)
+		balloon_alert(user, "no power cell")
+		return TRUE
 	if(!cover_open)
 		balloon_alert(user, "open the cover first")
 		return TRUE
@@ -235,7 +267,7 @@
 	if(!do_after(user, CYBORG_REVIVE_TIME, NONE, src, BUSY_ICON_MEDICAL))
 		return TRUE
 	//Things can change while we work
-	if(stat != DEAD || !cover_open || !can_reboot(user))
+	if(stat != DEAD || !cover_open || !cell || !can_reboot(user))
 		return TRUE
 	reboot()
 	user.visible_message(span_notice("[user] reboots [src]."), span_notice("You reboot [src]."))
@@ -257,6 +289,7 @@
 ///Brings us back online
 /mob/living/silicon/robot/proc/reboot()
 	cover_open = FALSE
+	cover_locked = TRUE
 	revive()
 	notransform = FALSE
 	update_damage_effects()
@@ -271,6 +304,94 @@
 	sparks.start()
 	playsound(src, 'sound/machines/ping.ogg', 40, TRUE)
 	to_chat(src, span_notice("<b>You have been rebooted. All systems nominal.</b>"))
+
+// ***************************************
+// *********** Power
+// ***************************************
+/**
+ * Our power cell is drained every tick and we shut down when it is empty or gone.
+ * Its cover is locked, an ID with engineering access unlocks it, and with the cover open the cell can be pulled out and replaced.
+ * Rebooting needs a cell and tops it up to full, see revive().
+ */
+///Fills our power cell to the top. Returns FALSE if we have none
+/mob/living/silicon/robot/proc/recharge_cell()
+	if(!cell)
+		return FALSE
+	cell.charge = cell.maxcharge
+	cell.update_appearance(UPDATE_ICON)
+	low_power_warned = FALSE
+	return TRUE
+
+//Being brought back always means a full cell, an admin revive even makes one if it is missing
+/mob/living/silicon/robot/revive(admin_revive = FALSE)
+	if(admin_revive && !cell)
+		cell = new cell_type(src)
+	. = ..()
+	recharge_cell()
+
+///Takes this tick's power from the cell, we shut down if it can't give it
+/mob/living/silicon/robot/proc/drain_cell()
+	if(status_flags & GODMODE)
+		return
+	if(!cell?.use(CYBORG_CELL_DRAIN))
+		lose_power()
+		return
+	if(cell.percent() > CYBORG_LOW_POWER_PERCENT)
+		low_power_warned = FALSE
+		return
+	if(low_power_warned)
+		return
+	low_power_warned = TRUE
+	to_chat(src, span_danger("Warning: power at [round(cell.percent())]%."))
+
+///We have no power left, shut down
+/mob/living/silicon/robot/proc/lose_power()
+	if(stat == DEAD)
+		return
+	to_chat(src, span_danger("Power failure!"))
+	death()
+
+///Swiping an ID with engineering access locks or unlocks our cover
+/mob/living/silicon/robot/proc/try_swipe_id(mob/living/user, obj/item/card/id/swiped_id)
+	if(!(ACCESS_MARINE_ENGINEERING in swiped_id.access))
+		balloon_alert(user, "access denied")
+		return TRUE
+	if(cover_open && !cover_locked)
+		balloon_alert(user, "close the cover first")
+		return TRUE
+	cover_locked = !cover_locked
+	playsound(src, 'sound/machines/ping.ogg', 25, TRUE)
+	user.visible_message(span_notice("[user] swipes [swiped_id] over [src]."), span_notice("You [cover_locked ? "lock" : "unlock"] [src]'s cover."))
+	return TRUE
+
+///Puts a cell in us if we have none and our cover is open
+/mob/living/silicon/robot/proc/try_insert_cell(mob/living/user, obj/item/cell/new_cell)
+	if(!cover_open)
+		balloon_alert(user, "cover is closed")
+		return TRUE
+	if(cell)
+		balloon_alert(user, "already has a cell")
+		return TRUE
+	if(!user.transferItemToLoc(new_cell, src))
+		return TRUE
+	cell = new_cell
+	low_power_warned = FALSE
+	user.visible_message(span_notice("[user] puts [new_cell] in [src]."), span_notice("You put [new_cell] in [src]."))
+	return TRUE
+
+///Pulls our cell out, which shuts us down if we are active
+/mob/living/silicon/robot/proc/remove_cell(mob/living/user)
+	user.visible_message(span_notice("[user] starts pulling the power cell out of [src]."), span_notice("You start pulling the power cell out of [src]."))
+	if(!do_after(user, CYBORG_CELL_REMOVE_TIME, NONE, src, BUSY_ICON_BUILD))
+		return
+	if(!cover_open || !cell)
+		return
+	var/obj/item/cell/old_cell = cell
+	cell = null
+	if(!user.put_in_hands(old_cell))
+		old_cell.forceMove(drop_location())
+	user.visible_message(span_notice("[user] pulls the power cell out of [src]."), span_notice("You pull the power cell out of [src]."))
+	lose_power()
 
 // ***************************************
 // *********** Laws

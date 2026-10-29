@@ -1062,6 +1062,12 @@ GLOBAL_LIST_INIT(ai_damtype_to_heal_list, list(
 #define CYBORG_SLOT_DISABLE_DAMAGE list(0.85, 0.65, 0.4)
 ///The slowdown of a cyborg at the brink of being shut down, it scales with how much damage it has
 #define CYBORG_DAMAGE_MAX_SLOWDOWN 1
+///How much charge the power cell of a cyborg loses every tick of its life
+#define CYBORG_CELL_DRAIN 10
+///The share of charge left at which a cyborg warns that it is running low
+#define CYBORG_LOW_POWER_PERCENT 20
+///How long it takes to pull the power cell out of a cyborg
+#define CYBORG_CELL_REMOVE_TIME (3 SECONDS)
 ///How much metal a cyborg's reservoir holds. Metal sheets, barbed wire and razor wire are all made out of it
 #define CYBORG_METAL_RESERVE_MAX 100
 ///How much plasteel a cyborg's reservoir holds
