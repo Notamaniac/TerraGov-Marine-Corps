@@ -133,6 +133,9 @@
 	var/obj/item/new_item = slot_items[slot_num]
 	if(!new_item || slot_disabled[slot_num])
 		return FALSE
+	if(out_of_power)
+		balloon_alert(src, "out of power")
+		return FALSE
 	selected_item = new_item
 	to_chat(src, span_notice("You ready your [new_item.name]."))
 	update_module_hud()
@@ -177,7 +180,7 @@
 // ***************************************
 
 /mob/living/silicon/robot/proc/activate_selected_item()
-	if(stat == DEAD || incapacitated() || !selected_item)
+	if(stat == DEAD || incapacitated() || !selected_item || out_of_power)
 		return FALSE
 	selected_item.attack_self(src)
 	update_module_hud()
@@ -248,9 +251,6 @@
  * which we never use, so every one of those helpers is answered from selected_item instead.
  */
 /mob/living/silicon/robot/get_held_item()
-	return selected_item
-
-/mob/living/silicon/robot/get_active_held_item()
 	return selected_item
 
 /mob/living/silicon/robot/get_inactive_held_item()

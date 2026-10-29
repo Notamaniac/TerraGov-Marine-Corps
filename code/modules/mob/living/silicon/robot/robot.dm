@@ -51,6 +51,8 @@
 	var/cell_type = /obj/item/cell/high
 	///Have we warned that our power is running low
 	var/low_power_warned = FALSE
+	///Set while our cell is empty or missing. Without power we can't use our tools or our headlamp, we get both back once there is power again
+	var/out_of_power = FALSE
 
 /mob/living/silicon/robot/Initialize(mapload)
 	. = ..()
@@ -219,7 +221,7 @@
 	if(stat == DEAD)
 		return
 	to_chat(src, span_notice("Integrity: [round(health / maxHealth * 100)]% (structural damage [round(getBruteLoss())], wiring damage [round(getFireLoss())])."))
-	to_chat(src, span_notice("Power: [cell ? "[round(cell.percent())]%" : "no power cell"]."))
+	to_chat(src, span_notice("Power: [cell ? "[round(cell.percent())]%" : "no power cell"][out_of_power ? " (out of power)" : ""]."))
 
 // ***************************************
 // *********** Rebooting
@@ -309,9 +311,10 @@
 // *********** Power
 // ***************************************
 /**
- * Our power cell is drained every tick and we shut down when it is empty or gone.
+ * Our power cell is drained every tick. When it is empty or gone we are out_of_power: our tools and headlamp stop working until there is power again.
  * Its cover is locked, an ID with engineering access unlocks it, and with the cover open the cell can be pulled out and replaced.
  * Rebooting needs a cell and tops it up to full, see revive().
+ * Running out of power does not shut us down, it only sets the out_of_power flag.
  */
 ///Fills our power cell to the top. Returns FALSE if we have none
 /mob/living/silicon/robot/proc/recharge_cell()
@@ -319,7 +322,7 @@
 		return FALSE
 	cell.charge = cell.maxcharge
 	cell.update_appearance(UPDATE_ICON)
-	low_power_warned = FALSE
+	update_power_state()
 	return TRUE
 
 //Being brought back always means a full cell, an admin revive even makes one if it is missing
@@ -329,13 +332,14 @@
 	. = ..()
 	recharge_cell()
 
-///Takes this tick's power from the cell, we shut down if it can't give it
+///Takes this tick's power from the cell. If it can't give it we are out of power
 /mob/living/silicon/robot/proc/drain_cell()
 	if(status_flags & GODMODE)
 		return
 	if(!cell?.use(CYBORG_CELL_DRAIN))
-		lose_power()
+		set_out_of_power(TRUE)
 		return
+	set_out_of_power(FALSE)
 	if(cell.percent() > CYBORG_LOW_POWER_PERCENT)
 		low_power_warned = FALSE
 		return
@@ -344,12 +348,26 @@
 	low_power_warned = TRUE
 	to_chat(src, span_danger("Warning: power at [round(cell.percent())]%."))
 
-///We have no power left, shut down
-/mob/living/silicon/robot/proc/lose_power()
-	if(stat == DEAD)
+///Checks whether our cell can run us and sets the out_of_power flag to match
+/mob/living/silicon/robot/proc/update_power_state()
+	set_out_of_power(!cell || cell.charge < CYBORG_CELL_DRAIN)
+
+///Sets or clears the out_of_power flag. Losing power turns the headlamp off and puts the tool we hold down
+/mob/living/silicon/robot/proc/set_out_of_power(new_value)
+	if(out_of_power == new_value)
 		return
-	to_chat(src, span_danger("Power failure!"))
-	death()
+	out_of_power = new_value
+	if(!out_of_power)
+		low_power_warned = FALSE
+		to_chat(src, span_notice("Power restored. Your tools and headlamp are back online."))
+		return
+	to_chat(src, span_danger("Power failure! Your tools and headlamp are offline."))
+	set_lamp_level(0, silent = TRUE)
+	if(istype(selected_item, /obj/item/tool/weldingtool))
+		var/obj/item/tool/weldingtool/welder = selected_item
+		if(welder.welding)
+			welder.toggle()
+	deselect_active()
 
 ///Swiping an ID with engineering access locks or unlocks our cover
 /mob/living/silicon/robot/proc/try_swipe_id(mob/living/user, obj/item/card/id/swiped_id)
@@ -376,6 +394,7 @@
 		return TRUE
 	cell = new_cell
 	low_power_warned = FALSE
+	update_power_state()
 	user.visible_message(span_notice("[user] puts [new_cell] in [src]."), span_notice("You put [new_cell] in [src]."))
 	return TRUE
 
@@ -391,7 +410,7 @@
 	if(!user.put_in_hands(old_cell))
 		old_cell.forceMove(drop_location())
 	user.visible_message(span_notice("[user] pulls the power cell out of [src]."), span_notice("You pull the power cell out of [src]."))
-	lose_power()
+	update_power_state()
 
 // ***************************************
 // *********** Laws

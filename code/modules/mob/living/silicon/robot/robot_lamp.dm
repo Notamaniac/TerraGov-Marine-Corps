@@ -20,6 +20,9 @@ GLOBAL_LIST_INIT(cyborg_lamp_names, list("off", "low", "medium", "high"))
 		new_level = CYBORG_LAMP_OFF
 	if(new_level == lamp_level)
 		return FALSE
+	if(out_of_power && new_level != CYBORG_LAMP_OFF)
+		balloon_alert(src, "out of power")
+		return FALSE
 	lamp_level = new_level
 	set_light(GLOB.cyborg_lamp_ranges[lamp_level + 1], GLOB.cyborg_lamp_powers[lamp_level + 1])
 	if(!notransform)
