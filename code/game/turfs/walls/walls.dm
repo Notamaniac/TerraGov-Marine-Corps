@@ -303,7 +303,7 @@
 	if(.)
 		return
 
-	if(!ishuman(user))
+	if(!user.dextrous)
 		to_chat(user, span_warning("You don't have the dexterity to do this!"))
 		return
 
