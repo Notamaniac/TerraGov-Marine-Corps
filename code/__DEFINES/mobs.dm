@@ -1068,6 +1068,12 @@ GLOBAL_LIST_INIT(ai_damtype_to_heal_list, list(
 #define CYBORG_LOW_POWER_PERCENT 20
 ///How long it takes to pull the power cell out of a cyborg
 #define CYBORG_CELL_REMOVE_TIME (3 SECONDS)
+///How much charge the tesla module pulls out of an APC's cell with each pulse
+#define CYBORG_TESLA_DRAIN 500
+///How long one pulse of the tesla module takes
+#define CYBORG_TESLA_PULSE_TIME (1 SECONDS)
+///The charge below which the battery icon shows on a cyborg's HUD
+#define CYBORG_BATTERY_ICON_PERCENT 75
 ///How much metal a cyborg's reservoir holds. Metal sheets, barbed wire and razor wire are all made out of it
 #define CYBORG_METAL_RESERVE_MAX 100
 ///How much plasteel a cyborg's reservoir holds

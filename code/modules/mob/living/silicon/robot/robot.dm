@@ -61,6 +61,7 @@
 	real_name = "[initial(real_name)] [rand(100, 999)]"
 	name = real_name
 	cell = new cell_type(src)
+	update_power_state()
 	//Spawned through the job system we are given skills anyway. Building reads them though, so a borg created any other way still needs some
 	if(!skills)
 		set_skills(getSkillsType(/datum/skills/synthetic))
@@ -212,6 +213,7 @@
 	var/datum/hud/robot/robot_hud = hud_used
 	if(istype(robot_hud))
 		robot_hud.update_slots()
+		robot_hud.update_battery()
 
 /mob/living/silicon/robot/attackby(obj/item/I, mob/living/user, params)
 	if(user.a_intent != INTENT_HELP)
@@ -270,6 +272,15 @@
 		remove_cell(user)
 		return TRUE
 	return ..()
+
+//The charge of our cell is on the status panel
+/mob/living/silicon/robot/get_status_tab_items()
+	. = ..()
+	. += "Integrity: [round(health / maxHealth * 100)]%"
+	if(!cell)
+		. += "Power: no power cell"
+		return
+	. += "Power: [round(cell.percent())]% ([round(cell.charge)]/[cell.maxcharge])[out_of_power ? " - OUT OF POWER" : ""]"
 
 ///Prints how damaged we are to ourselves
 /mob/living/silicon/robot/verb/check_integrity()
@@ -412,6 +423,9 @@
 
 ///Checks whether our cell can run us and sets the out_of_power flag to match
 /mob/living/silicon/robot/proc/update_power_state()
+	var/datum/hud/robot/robot_hud = hud_used
+	if(istype(robot_hud))
+		robot_hud.update_battery()
 	set_out_of_power(!cell || cell.charge < CYBORG_CELL_DRAIN)
 
 ///Sets or clears the out_of_power flag. Losing power turns the headlamp off and puts the tool we hold down

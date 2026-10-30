@@ -23,6 +23,8 @@
 	var/atom/movable/screen/robot/lamp_button/lamp_button
 	///Opens the radio window
 	var/atom/movable/screen/robot/radio_button/radio_button
+	///Shows how much charge our cell has left, only while it is low
+	var/atom/movable/screen/robot/battery/battery_icon
 
 /datum/hud/robot/New(mob/living/silicon/robot/owner, ui_style = 'icons/mob/screen/cyborg.dmi', ui_color = "#ffffff", ui_alpha = 230)
 	. = ..()
@@ -36,6 +38,8 @@
 	always_visible_inventory += lamp_button
 	radio_button = new(null, src)
 	always_visible_inventory += radio_button
+	battery_icon = new(null, src)
+	always_visible_inventory += battery_icon
 	//Not in any of the hud lists, refresh_panel puts it on the screen when the panel opens
 	store_button = new(null, src)
 	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
@@ -60,6 +64,7 @@
 	update_module_button()
 	update_slots()
 	update_health()
+	update_battery()
 
 /datum/hud/robot/Destroy()
 	var/client/hud_client = mymob?.client
@@ -69,6 +74,7 @@
 	QDEL_NULL(store_button)
 	lamp_button = null
 	radio_button = null
+	battery_icon = null
 	module_button = null
 	slots.Cut()
 	return ..()
@@ -99,6 +105,11 @@
 /datum/hud/robot/proc/update_lamp()
 	var/mob/living/silicon/robot/borg = mymob
 	lamp_button?.update_level(borg.lamp_level)
+
+///Shows the charge of our cell, but only below CYBORG_BATTERY_ICON_PERCENT
+/datum/hud/robot/proc/update_battery()
+	var/mob/living/silicon/robot/borg = mymob
+	battery_icon?.update_charge(borg)
 
 ///Shows our health
 /datum/hud/robot/proc/update_health()
@@ -201,6 +212,30 @@
 		return
 	var/mob/living/silicon/robot/borg = usr
 	borg.ui_interact(borg)
+
+//Shows the charge of our cell while it is low, it is off the screen otherwise
+/atom/movable/screen/robot/battery
+	name = "battery"
+	icon = 'icons/mob/screen/cyborg_battery.dmi'
+	icon_state = "battery3"
+
+/atom/movable/screen/robot/battery/proc/update_charge(mob/living/silicon/robot/borg)
+	var/percent = borg.cell ? borg.cell.percent() : 0
+	if(borg.cell && percent >= CYBORG_BATTERY_ICON_PERCENT)
+		screen_loc = null
+		return
+	screen_loc = ui_borg_battery
+	if(!borg.cell || borg.out_of_power)
+		icon_state = "battery0"
+		name = "battery (empty)"
+		return
+	name = "battery ([round(percent)]%)"
+	if(percent >= 50)
+		icon_state = "battery3"
+	else if(percent >= 25)
+		icon_state = "battery2"
+	else
+		icon_state = "battery1"
 
 //Puts the tool we are holding back on the panel
 /atom/movable/screen/robot/store_button

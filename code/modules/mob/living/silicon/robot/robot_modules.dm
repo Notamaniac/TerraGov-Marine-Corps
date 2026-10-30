@@ -16,6 +16,8 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	var/name_prefix = "Unit"
 	///Typepaths of every tool we hand out. Stacks are refilled over time, welders are refuelled
 	var/list/item_types = list()
+	///The tools every module hands out, before its own item_types
+	var/list/base_item_types = list(/obj/item/cyborg_tesla)
 	///DATA_HUD_* defines this module adds to the cyborg
 	var/list/huds = list()
 	///The icon state of the module button on the cyborg HUD, from icons/mob/screen/cyborg.dmi
@@ -112,7 +114,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	if(module)
 		return FALSE
 	module = new module_type
-	for(var/item_type in module.item_types)
+	for(var/item_type in module.base_item_types + module.item_types)
 		add_module_item(item_type)
 	for(var/hud_define in module.huds)
 		var/datum/atom_hud/module_hud = GLOB.huds[hud_define]

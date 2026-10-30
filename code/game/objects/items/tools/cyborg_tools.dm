@@ -170,3 +170,54 @@
 	held_item = null
 	user.visible_message(span_notice("[user] drops [dropped_item]."), span_notice("You drop [dropped_item]."))
 	update_borg_hud(user)
+
+/**
+ * Drains an APC's cell into the cell of the cyborg using it. Every module carries one, see base_item_types in robot_modules.dm.
+ * Use it on an APC, it keeps pulling until the cyborg is full, the APC is empty or the cyborg is interrupted.
+ */
+/obj/item/cyborg_tesla
+	name = "tesla charger"
+	desc = "Drains the cell of an APC to charge a cyborg. Use it on an APC."
+	icon = 'icons/obj/machines/deployable/sentry/tesla.dmi'
+	//Placeholder sprite
+	icon_state = "tesla_coil_handheld"
+	w_class = WEIGHT_CLASS_SMALL
+	item_flags = NOBLUDGEON
+
+/obj/item/cyborg_tesla/preattack(atom/target, mob/user, params)
+	var/mob/living/silicon/robot/borg = user
+	if(!istype(borg) || !istype(target, /obj/machinery/power/apc) || !borg.Adjacent(target))
+		return ..()
+	drain_apc(target, borg)
+	return TRUE
+
+///Pulls charge out of the APC until something stops it
+/obj/item/cyborg_tesla/proc/drain_apc(obj/machinery/power/apc/apc, mob/living/silicon/robot/borg)
+	if(!borg.cell)
+		borg.balloon_alert(borg, "no power cell")
+		return
+	if(!apc.cell || (apc.machine_stat & BROKEN))
+		borg.balloon_alert(borg, "apc has no cell")
+		return
+	if(borg.cell.is_fully_charged())
+		borg.balloon_alert(borg, "already full")
+		return
+	borg.visible_message(span_notice("[borg] touches [apc] with [src]."), span_notice("You start drawing power from [apc]."))
+	while(!QDELETED(apc) && !QDELETED(borg) && borg.cell && apc.cell && !borg.cell.is_fully_charged())
+		if(!do_after(borg, CYBORG_TESLA_PULSE_TIME, NONE, apc, BUSY_ICON_BUILD))
+			return
+		if(!borg.cell || !apc.cell)
+			return
+		var/taken = min(CYBORG_TESLA_DRAIN, apc.cell.charge, borg.cell.maxcharge - borg.cell.charge)
+		if(taken <= 0 || !apc.cell.use(taken))
+			borg.balloon_alert(borg, "apc is drained")
+			return
+		borg.cell.give(taken)
+		borg.update_power_state()
+		var/datum/effect_system/spark_spread/sparks = new
+		sparks.set_up(2, 0, apc)
+		sparks.attach(apc)
+		sparks.start()
+		playsound(apc, 'sound/effects/sparks2.ogg', 25, TRUE)
+	if(borg.cell?.is_fully_charged())
+		borg.balloon_alert(borg, "fully charged")
