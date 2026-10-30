@@ -129,7 +129,7 @@
 		return FALSE
 	if(buckling_mob == user)
 		return FALSE
-	if(!ishuman(user)) //xenos buckling humans into op tables and applying anesthetic masks? no way.
+	if(!user.dextrous) //xenos buckling humans into op tables and applying anesthetic masks? no way.
 		to_chat(user, span_xenowarning("We don't have the manual dexterity to do this."))
 		return FALSE
 	if(buckling_mob != victim)
@@ -196,6 +196,9 @@
 		if(user.drop_held_item())
 			if (I.loc != loc)
 				step(I, get_dir(I, src))
+	else if(iscyborg(user) && iscarbon(A) && A != victim && !user.incapacitated() && user.Adjacent(src) && user.Adjacent(A))
+		//A cyborg has no hands to grab with, dragging a patient who can't walk, or one it is pulling, onto the table lays them on it
+		lay_patient(A, user)
 	else if(ismob(A))
 		..(A, user)
 
@@ -271,6 +274,19 @@
 		icon_state = H.handle_pulse() ? "table2-active" : "table2-idle"
 	else
 		icon_state = "table2-idle"
+
+///A cyborg lays a patient on the table by dragging them onto it. Dragging them again, once they are on it, connects the anesthetic
+/obj/machinery/optable/proc/lay_patient(mob/living/carbon/patient, mob/living/user)
+	if(victim && victim != patient)
+		balloon_alert(user, "already has a patient!")
+		return
+	if(patient.buckled)
+		balloon_alert(user, "unbuckle them first")
+		return
+	if(user.pulling != patient && !patient.lying_angle && !patient.incapacitated())
+		balloon_alert(user, "they have to be lying down")
+		return
+	take_victim(patient, user)
 
 /obj/machinery/optable/verb/climb_on()
 	set name = "Climb On Table"
