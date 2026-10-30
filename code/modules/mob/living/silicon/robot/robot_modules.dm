@@ -251,12 +251,53 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 /**
  * Metal sheets, barbed wire and razor wire all draw on the one reservoir of metal of the cyborg that carries them.
  * A stack's amount is how many it could make from what is left, so using one of them lowers what the others show.
- * The plasteel sheets have a reservoir of their own. Nothing refills them by itself, a sheet snatcher turns sheets of metal and plasteel back into reservoir.
- * They can't be split or have anything added to them.
+ * The plasteel sheets have a reservoir of their own. Nothing refills them by itself.
+ * They can't be split. Using one on loose metal, plasteel or wire next to us converts what it is used on into reservoir, and uses it up.
  */
 ///Is this one of the tools that draw on our metal reservoir
 /mob/living/silicon/robot/proc/is_reservoir_stack(obj/item/checked_item)
 	return istype(checked_item, /obj/item/stack/sheet/metal/cyborg) || istype(checked_item, /obj/item/stack/barbed_wire/cyborg) || istype(checked_item, /obj/item/stack/razorwire/cyborg) || istype(checked_item, /obj/item/stack/sheet/plasteel/cyborg)
+
+///Converts a loose stack into whichever reservoir it belongs to and uses it up. Returns FALSE if it is not something we can convert, and tells us if we are full
+/mob/living/silicon/robot/proc/absorb_into_reservoir(obj/item/stack/source)
+	if(QDELETED(source) || is_reservoir_stack(source))
+		return FALSE
+	var/is_plasteel = FALSE
+	var/metal_value = 0
+	if(istype(source, /obj/item/stack/sheet/plasteel))
+		is_plasteel = TRUE
+		metal_value = 1
+	else if(istype(source, /obj/item/stack/sheet/metal))
+		metal_value = 1
+	else if(istype(source, /obj/item/stack/barbed_wire))
+		metal_value = CYBORG_BARBED_WIRE_COST
+	else if(istype(source, /obj/item/stack/razorwire))
+		metal_value = CYBORG_RAZORWIRE_COST
+	else
+		return FALSE
+	var/room = is_plasteel ? CYBORG_PLASTEEL_RESERVE_MAX - plasteel_reserve : CYBORG_METAL_RESERVE_MAX - metal_reserve
+	var/convertible = floor(room / metal_value)
+	if(convertible <= 0)
+		balloon_alert(src, "reservoir full")
+		return TRUE
+	var/taken = min(source.get_amount(), convertible)
+	if(!taken || !source.use(taken))
+		return TRUE
+	if(is_plasteel)
+		plasteel_reserve += taken
+	else
+		metal_reserve += taken * metal_value
+	sync_reservoir()
+	playsound(src, 'sound/items/deconstruct.ogg', 25, TRUE)
+	balloon_alert(src, "+[taken * metal_value] [is_plasteel ? "plasteel" : "metal"]")
+	return TRUE
+
+///What the stacks of the reservoir do when used on something: loose stacks next to us are converted. Returns TRUE if that is what happened
+/proc/convert_into_reservoir(atom/target, mob/user)
+	var/mob/living/silicon/robot/borg = user
+	if(!istype(borg) || !istype(target, /obj/item/stack) || !isturf(target.loc) || !borg.Adjacent(target))
+		return FALSE
+	return borg.absorb_into_reservoir(target)
 
 ///Makes every tool that draws on the reservoir show what it holds
 /mob/living/silicon/robot/proc/sync_reservoir()
@@ -314,6 +355,9 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 /obj/item/stack/sheet/plasteel/cyborg/change_stack(mob/user, new_amount)
 	return
 
+/obj/item/stack/sheet/plasteel/cyborg/preattack(atom/target, mob/user, params)
+	return convert_into_reservoir(target, user) || ..()
+
 /obj/item/stack/sheet/metal/cyborg
 	max_amount = CYBORG_METAL_RESERVE_MAX
 	merge_type = /obj/item/stack/sheet/metal/cyborg
@@ -329,6 +373,9 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 
 /obj/item/stack/sheet/metal/cyborg/change_stack(mob/user, new_amount)
 	return
+
+/obj/item/stack/sheet/metal/cyborg/preattack(atom/target, mob/user, params)
+	return convert_into_reservoir(target, user) || ..()
 
 /obj/item/stack/barbed_wire/cyborg
 	max_amount = CYBORG_METAL_RESERVE_MAX / CYBORG_BARBED_WIRE_COST
@@ -346,6 +393,9 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 /obj/item/stack/barbed_wire/cyborg/change_stack(mob/user, new_amount)
 	return
 
+/obj/item/stack/barbed_wire/cyborg/preattack(atom/target, mob/user, params)
+	return convert_into_reservoir(target, user) || ..()
+
 /obj/item/stack/razorwire/cyborg
 	max_amount = CYBORG_METAL_RESERVE_MAX / CYBORG_RAZORWIRE_COST
 	merge_type = /obj/item/stack/razorwire/cyborg
@@ -361,6 +411,9 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 
 /obj/item/stack/razorwire/cyborg/change_stack(mob/user, new_amount)
 	return
+
+/obj/item/stack/razorwire/cyborg/preattack(atom/target, mob/user, params)
+	return convert_into_reservoir(target, user) || ..()
 
 // ***************************************
 // *********** Meson scanner
