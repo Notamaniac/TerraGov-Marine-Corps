@@ -37,13 +37,16 @@
 	icon_state = "indwelder_cyborg"
 	base_icon_state = "indwelder_cyborg"
 
-//The lit sprite of the cyborg welder is named with a dash, and it has no emissive sprite
+//The flame of the cyborg welder is a sprite of its own that is drawn over the welder, not a sprite of a lit welder. It has no emissive sprite
 /obj/item/tool/weldingtool/cyborg/update_icon_state()
-	icon_state = welding ? "[base_icon_state]-on" : base_icon_state
+	icon_state = base_icon_state
 
 /obj/item/tool/weldingtool/cyborg/update_overlays()
 	..()
-	return list()
+	return welding ? list("[base_icon_state]-on") : list()
+
+/obj/item/tool/weldingtool/cyborg/get_hud_overlay_states()
+	return welding ? list("[base_icon_state]-on") : list()
 
 /**
  * Turns sheets of metal and plasteel into the reservoirs of the cyborg using it, and the sheets are used up.

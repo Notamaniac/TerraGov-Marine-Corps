@@ -254,6 +254,10 @@
 		return
 	borg.unequip_slot(active_slot)
 
+///The states of this item's icon a cyborg's slot draws over the item, for tools that show they are on with an overlay
+/obj/item/proc/get_hud_overlay_states()
+	return list()
+
 /atom/movable/screen/robot/module_slot
 	name = "module"
 	icon_state = "inv1"
@@ -268,6 +272,8 @@
 	///The icon and icon state of the tool as we last drew it, a tool changes how it looks when it is switched on or turns into another one
 	var/shown_icon
 	var/shown_icon_state
+	///The overlays of the tool as we last drew them, joined into one text
+	var/shown_overlays = ""
 	///The item a manipulator in the slot holds, which is drawn on it
 	var/obj/item/shown_held
 	///Is the slot knocked out by damage
@@ -300,8 +306,10 @@
 		new_text = MAPTEXT_TINY_UNICODE("<div align='right'>[new_stack.amount]</div>")
 	var/obj/item/cyborg_manipulator/hand = new_item
 	var/obj/item/new_held = istype(hand) ? hand.get_held() : null
-	if(shown_item == new_item && selected == new_selected && maptext == new_text && shown_icon == new_item?.icon && shown_icon_state == new_item?.icon_state && shown_held == new_held)
+	var/new_overlays = new_item ? jointext(new_item.get_hud_overlay_states(), ",") : ""
+	if(shown_overlays == new_overlays && shown_item == new_item && selected == new_selected && maptext == new_text && shown_icon == new_item?.icon && shown_icon_state == new_item?.icon_state && shown_held == new_held)
 		return
+	shown_overlays = new_overlays
 	shown_held = new_held
 	shown_item = new_item
 	shown_icon = new_item?.icon
@@ -327,6 +335,8 @@
 	. = ..()
 	if(shown_item)
 		. += mutable_appearance(shown_item.icon, shown_item.icon_state)
+		for(var/overlay_state in shown_item.get_hud_overlay_states())
+			. += mutable_appearance(shown_item.icon, overlay_state)
 	if(shown_held)
 		var/mutable_appearance/held_appearance = mutable_appearance(shown_held.icon, shown_held.icon_state)
 		held_appearance.transform = matrix().Scale(0.6, 0.6)
