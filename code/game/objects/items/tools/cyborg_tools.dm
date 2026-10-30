@@ -203,3 +203,130 @@
 		playsound(apc, 'sound/effects/sparks2.ogg', 25, TRUE)
 	if(borg.cell?.is_fully_charged())
 		borg.balloon_alert(borg, "fully charged")
+
+/**
+ * A hypospray for the basic chems. They all draw on one reservoir inside it, which refills over time for as long as the cyborg carrying it has power.
+ * Using it opens a radial menu to choose the chem, clicking a living thing injects it.
+ */
+/obj/item/cyborg_hypospray
+	name = "cyborg hypospray"
+	desc = "A hypospray with a reservoir that refills from the cyborg's power cell. Use it to choose a chem, click someone to inject them."
+	icon = 'icons/obj/items/syringe.dmi'
+	icon_state = "hypo"
+	w_class = WEIGHT_CLASS_SMALL
+	item_flags = NOBLUDGEON
+	///What is left in the reservoir, any chem can use it
+	var/chem_charge = CYBORG_HYPO_MAX_CHARGE
+	///The chem it injects
+	var/selected_chem = /datum/reagent/medicine/bicaridine
+	///How much one injection gives
+	var/dose = 5
+	///The chems it can make
+	var/static/list/chems = list(
+		/datum/reagent/medicine/bicaridine,
+		/datum/reagent/medicine/tricordrazine,
+		/datum/reagent/medicine/dylovene,
+		/datum/reagent/medicine/kelotane,
+		/datum/reagent/medicine/inaprovaline,
+	)
+
+/obj/item/cyborg_hypospray/Initialize(mapload)
+	. = ..()
+	update_chem_name()
+	START_PROCESSING(SSobj, src)
+
+/obj/item/cyborg_hypospray/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
+/obj/item/cyborg_hypospray/examine(mob/user)
+	. = ..()
+	. += span_notice("It is set to [get_chem_name()]. The reservoir holds [round(chem_charge)]/[CYBORG_HYPO_MAX_CHARGE] units, an injection uses [dose].")
+
+//The slot of a cyborg shows what is left in the reservoir
+/obj/item/cyborg_hypospray/get_hud_count()
+	return round(chem_charge)
+
+///Refills the reservoir, which costs the cyborg's cell some charge
+/obj/item/cyborg_hypospray/process()
+	if(chem_charge >= CYBORG_HYPO_MAX_CHARGE)
+		return
+	var/mob/living/silicon/robot/borg = loc
+	if(!istype(borg) || !borg.cell || borg.out_of_power)
+		return
+	var/refill = min(CYBORG_HYPO_REGEN, CYBORG_HYPO_MAX_CHARGE - chem_charge)
+	if(!borg.cell.use(refill * CYBORG_HYPO_CELL_COST))
+		return
+	chem_charge += refill
+
+///The name of the chem we are set to
+/obj/item/cyborg_hypospray/proc/get_chem_name()
+	var/datum/reagent/chem_type = selected_chem
+	return initial(chem_type.name)
+
+///Names the hypospray after the chem it is set to
+/obj/item/cyborg_hypospray/proc/update_chem_name()
+	name = "cyborg hypospray ([get_chem_name()])"
+
+//Opens the radial menu of chems
+/obj/item/cyborg_hypospray/attack_self(mob/user)
+	var/list/choices = list()
+	for(var/datum/reagent/chem_type AS in chems)
+		var/image/chem_image = image(icon = icon, icon_state = icon_state)
+		chem_image.color = initial(chem_type.color)
+		choices[initial(chem_type.name)] = chem_image
+	var/choice = show_radial_menu(user, src, choices, custom_check = CALLBACK(src, PROC_REF(can_use_menu), user), require_near = TRUE, tooltips = TRUE)
+	if(!choice || !can_use_menu(user))
+		return
+	for(var/datum/reagent/chem_type AS in chems)
+		if(initial(chem_type.name) != choice)
+			continue
+		selected_chem = chem_type
+		update_chem_name()
+		user.balloon_alert(user, "set to [choice]")
+		var/mob/living/silicon/robot/borg = user
+		if(istype(borg))
+			borg.update_module_hud()
+		return
+
+///The menu closes itself when this stops being true
+/obj/item/cyborg_hypospray/proc/can_use_menu(mob/user)
+	return !QDELETED(src) && !QDELETED(user) && user.is_holding(src) && !user.incapacitated()
+
+//Clicking a living thing injects it
+/obj/item/cyborg_hypospray/preattack(atom/target, mob/user, params)
+	if(!isliving(target) || !user.Adjacent(target))
+		return ..()
+	inject(target, user)
+	return TRUE
+
+///Injects the chem we are set to, if the reservoir has enough
+/obj/item/cyborg_hypospray/proc/inject(mob/living/target, mob/user)
+	if(chem_charge < dose)
+		user.balloon_alert(user, "reservoir is recharging")
+		return
+	if(iscarbon(target))
+		var/mob/living/carbon/carbon_target = target
+		if((carbon_target.species.species_flags & NO_CHEM_METABOLIZATION) || (carbon_target.species.species_flags & IS_SYNTHETIC))
+			carbon_target.balloon_alert(user, "can't inject (robot)")
+			return
+	if(!target.can_inject(user, TRUE, user.zone_selected, TRUE))
+		return
+	if(target.faction != user.faction && !target.incapacitated())
+		user.visible_message(span_notice("[user] attempts to inject [target] with [src]."), span_notice("You attempt to inject [target] with [src]."))
+		if(!do_after(user, SKILL_TASK_VERY_EASY, NONE, target, BUSY_ICON_HOSTILE) || !user.Adjacent(target))
+			return
+	if(chem_charge < dose)
+		return
+	log_combat(user, target, "injected", src, "Reagents: [get_chem_name()]")
+	user.changeNext_move(3)
+	playsound(loc, 'sound/items/hypospray.ogg', 50, TRUE)
+	var/datum/reagents/injection = new(dose)
+	injection.add_reagent(selected_chem, dose)
+	injection.reaction(target, INJECT)
+	injection.trans_to(target, dose)
+	qdel(injection)
+	chem_charge -= dose
+	user.balloon_alert(user, "injects [target]")
+	to_chat(target, span_warning("You feel a tiny prick!"))
+	to_chat(user, span_notice("[dose] units of [get_chem_name()] injected. [round(chem_charge)] units left in the reservoir."))

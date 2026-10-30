@@ -254,6 +254,10 @@
 		return
 	borg.unequip_slot(active_slot)
 
+///A number a cyborg's slot shows on the item, null for none. Stacks show how many they hold
+/obj/item/proc/get_hud_count()
+	return null
+
 ///The states of this item's icon a cyborg's slot draws over the item, for tools that show they are on with an overlay
 /obj/item/proc/get_hud_overlay_states()
 	return list()
@@ -304,6 +308,10 @@
 	if(istype(new_item, /obj/item/stack))
 		var/obj/item/stack/new_stack = new_item
 		new_text = MAPTEXT_TINY_UNICODE("<div align='right'>[new_stack.amount]</div>")
+	if(!new_text && new_item)
+		var/hud_count = new_item.get_hud_count()
+		if(!isnull(hud_count))
+			new_text = MAPTEXT_TINY_UNICODE("<div align='right'>[hud_count]</div>")
 	var/obj/item/cyborg_manipulator/hand = new_item
 	var/obj/item/new_held = istype(hand) ? hand.get_held() : null
 	var/new_overlays = new_item ? jointext(new_item.get_hud_overlay_states(), ",") : ""

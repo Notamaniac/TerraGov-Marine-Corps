@@ -61,6 +61,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		/obj/item/stack/medical/heal_pack/advanced/bruise_pack,
 		/obj/item/stack/medical/heal_pack/advanced/burn_pack,
 		/obj/item/stack/medical/splint,
+		/obj/item/cyborg_hypospray,
 		/obj/item/tool/cyborg_omnitool/surgical,
 		/obj/item/tool/cyborg_omnitool/surgical,
 	)

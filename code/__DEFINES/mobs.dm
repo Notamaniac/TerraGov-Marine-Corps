@@ -1074,6 +1074,12 @@ GLOBAL_LIST_INIT(ai_damtype_to_heal_list, list(
 #define CYBORG_TESLA_PULSE_TIME (1 SECONDS)
 ///The charge below which the battery icon shows on a cyborg's HUD
 #define CYBORG_BATTERY_ICON_PERCENT 75
+///How much the reservoir of a cyborg hypospray holds, one unit of it is one unit of any chem
+#define CYBORG_HYPO_MAX_CHARGE 100
+///How much a cyborg hypospray refills each tick, while its cyborg has power
+#define CYBORG_HYPO_REGEN 2
+///How much charge refilling one unit of a cyborg hypospray takes from the cell of the cyborg
+#define CYBORG_HYPO_CELL_COST 20
 ///How much metal a cyborg's reservoir holds. Metal sheets, barbed wire and razor wire are all made out of it
 #define CYBORG_METAL_RESERVE_MAX 100
 ///How much plasteel a cyborg's reservoir holds
