@@ -330,3 +330,65 @@
 	user.balloon_alert(user, "injects [target]")
 	to_chat(target, span_warning("You feel a tiny prick!"))
 	to_chat(user, span_notice("[dose] units of [get_chem_name()] injected. [round(chem_charge)] units left in the reservoir."))
+
+/**
+ * The roller bed rack of a cyborg. It holds one folded roller bed. Clicking a loose folded one, or a roller bed that nobody is on, folds it into the rack,
+ * clicking an empty tile or using the rack puts the bed down.
+ */
+/obj/item/roller_holder/cyborg
+	name = "roller bed rack"
+	desc = "A rack for carrying a collapsed roller bed. Click a roller bed to pick it up, click a free tile or use the rack to put it down."
+
+//The slot of a cyborg shows whether it holds a bed
+/obj/item/roller_holder/cyborg/get_hud_count()
+	return held ? 1 : 0
+
+/obj/item/roller_holder/cyborg/preattack(atom/target, mob/user, params)
+	if(!user.Adjacent(target))
+		return ..()
+	if(istype(target, /obj/item/roller))
+		var/obj/item/roller/loose_roller = target
+		if(loose_roller.rollertype != /obj/structure/bed/roller)
+			return ..()
+		if(held)
+			user.balloon_alert(user, "already holding one")
+			return TRUE
+		pick_up_roller(loose_roller, user)
+		return TRUE
+	if(istype(target, /obj/structure/bed/roller))
+		var/obj/structure/bed/roller/bed = target
+		if(bed.foldabletype != /obj/item/roller)
+			return ..()
+		if(held)
+			user.balloon_alert(user, "already holding one")
+			return TRUE
+		if(LAZYLEN(bed.buckled_mobs) || bed.buckled_bodybag)
+			user.balloon_alert(user, "someone is on it")
+			return TRUE
+		var/obj/item/roller/folded_roller = new(src)
+		pick_up_roller(folded_roller, user)
+		qdel(bed)
+		return TRUE
+	if(isturf(target))
+		if(!held)
+			user.balloon_alert(user, "the rack is empty")
+			return TRUE
+		var/turf/target_turf = target
+		if(target_turf.density)
+			user.balloon_alert(user, "no room")
+			return TRUE
+		for(var/atom/atom_to_check AS in target_turf)
+			if(atom_to_check.density)
+				user.balloon_alert(user, "no room")
+				return TRUE
+		var/obj/structure/bed/roller/placed_bed = new(target_turf)
+		to_chat(user, span_notice("You deploy [placed_bed]."))
+		QDEL_NULL(held)
+		return TRUE
+	return ..()
+
+///Puts a folded roller bed in the rack
+/obj/item/roller_holder/cyborg/proc/pick_up_roller(obj/item/roller/folded_roller, mob/user)
+	to_chat(user, span_notice("You pick up [folded_roller]."))
+	folded_roller.forceMove(src)
+	held = folded_roller
