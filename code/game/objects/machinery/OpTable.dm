@@ -93,7 +93,8 @@
 	switch(choice)
 		if(EJECT_ANESTHETIC)
 			if(anes_tank)
-				user.put_in_active_hand(anes_tank)
+				if(!user.put_in_active_hand(anes_tank))
+					anes_tank.forceMove(get_turf(src)) //No free hand, a cyborg has none
 				balloon_alert(user, "You remove \the [anes_tank] from \the [src].")
 				playsound(loc, 'sound/effects/air_release.ogg', 25, 1, MEDIUM_SOUND_RANGE)
 				anes_tank = null
@@ -102,7 +103,8 @@
 				balloon_alert(user, "There is no anesthetic tank connected.")
 		if(EJECT_BLOOD_PACK)
 			if(blood_pack)
-				user.put_in_active_hand(blood_pack)
+				if(!user.put_in_active_hand(blood_pack))
+					blood_pack.forceMove(get_turf(src))
 				balloon_alert(user, "You remove \the [blood_pack] from \the [src].")
 				playsound(loc, 'sound/effects/pop.ogg', 25, 1, MEDIUM_SOUND_RANGE)
 				blood_pack = null

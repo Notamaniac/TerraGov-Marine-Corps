@@ -555,4 +555,8 @@
 	//Anything you want to do to a living thing needs a tool
 	if(isliving(A))
 		return
+	//Right click is the alternate use of a hand, the radial menu of an operating table for one
+	if(LAZYACCESS(modifiers, RIGHT_CLICK))
+		A.attack_hand_alternate(src)
+		return
 	A.attack_hand(src)

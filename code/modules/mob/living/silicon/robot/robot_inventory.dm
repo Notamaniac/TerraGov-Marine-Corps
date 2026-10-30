@@ -260,6 +260,13 @@
 /mob/living/silicon/robot/get_held_item()
 	return get_hand_item()
 
+//We have no hands, nothing is ever put in one. What would have gone into a hand ends up on the floor
+/mob/living/silicon/robot/put_in_l_hand(obj/item/W)
+	return FALSE
+
+/mob/living/silicon/robot/put_in_r_hand(obj/item/W)
+	return FALSE
+
 /mob/living/silicon/robot/get_inactive_held_item()
 	return null
 
