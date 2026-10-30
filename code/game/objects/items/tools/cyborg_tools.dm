@@ -111,6 +111,15 @@
 /obj/item/cyborg_manipulator/proc/can_hold(atom/target)
 	return is_type_in_typecache(target, whitelist)
 
+///Takes an item into the manipulator if it is empty and the item is on the whitelist. Returns whether it did
+/obj/item/cyborg_manipulator/proc/try_hold(obj/item/new_item)
+	if(QDELETED(new_item) || get_held() || !can_hold(new_item))
+		return FALSE
+	new_item.forceMove(src)
+	held_item = new_item
+	update_borg_hud(loc)
+	return TRUE
+
 ///Tells the cyborg's HUD what we hold
 /obj/item/cyborg_manipulator/proc/update_borg_hud(mob/user)
 	var/mob/living/silicon/robot/borg = user
@@ -152,6 +161,40 @@
 	held_item = null
 	user.visible_message(span_notice("[user] drops [dropped_item]."), span_notice("You drop [dropped_item]."))
 	update_borg_hud(user)
+
+/**
+ * The manipulator of a field medic. It holds the things a medic hands around, bottles, beakers, pills and blood bags, so they can be loaded into the chem machines and hung on an IV drip.
+ * Empty, it also works as a hand on machines, which is how the chem machines are opened, and takes the bag off an IV drip.
+ */
+/obj/item/cyborg_manipulator/medical
+	name = "medical manipulator"
+	desc = "A robotic hand for medical supplies. Click a bottle, beaker, pill or blood bag to pick it up, then click something to use it on that. Use the manipulator itself to drop what it holds. Empty, click a machine to use it, or an IV drip to take its bag."
+	///The types of item it can pick up, subtypes included
+	var/static/list/medical_whitelist = typecacheof(list(
+		/obj/item/reagent_containers/glass/bottle,
+		/obj/item/reagent_containers/glass/beaker,
+		/obj/item/reagent_containers/pill,
+		/obj/item/reagent_containers/blood,
+	))
+
+/obj/item/cyborg_manipulator/medical/can_hold(atom/target)
+	return is_type_in_typecache(target, medical_whitelist)
+
+/obj/item/cyborg_manipulator/medical/preattack(atom/target, mob/user, params)
+	if(get_held() || !ismachinery(target) || !user.Adjacent(target))
+		return ..()
+	//Empty, an IV drip gives up its bag
+	var/obj/machinery/iv_drip/drip = target
+	if(istype(drip))
+		var/obj/item/reagent_containers/bag = drip.beaker
+		if(bag)
+			drip.remove_beaker()
+			try_hold(bag)
+			user.visible_message(span_notice("[user] takes [bag] off [drip]."), span_notice("You take [bag] off [drip]."))
+			return TRUE
+	//Any other machine is used the way a hand would use it
+	user.UnarmedAttack(target, TRUE, params2list(params))
+	return TRUE
 
 /**
  * Drains an APC's cell into the cell of the cyborg using it. Every module carries one, see base_item_types in robot_modules.dm.

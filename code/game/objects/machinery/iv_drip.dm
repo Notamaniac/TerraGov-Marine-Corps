@@ -156,10 +156,17 @@
 	. = ..()
 	if(.)
 		return
-	if(src.beaker)
-		src.beaker.loc = get_turf(src)
-		src.beaker = null
-		update_icon()
+	remove_beaker()
+
+///Takes the bag or beaker off the drip and puts it on the floor under it. Returns it
+/obj/machinery/iv_drip/proc/remove_beaker()
+	if(!beaker)
+		return
+	var/obj/item/reagent_containers/removed = beaker
+	beaker = null
+	removed.forceMove(get_turf(src))
+	update_icon()
+	return removed
 
 
 /obj/machinery/iv_drip/verb/toggle_mode()

@@ -105,7 +105,7 @@
 /obj/machinery/chem_master/proc/replace_beaker(mob/user)
 	if(beaker)
 		beaker.forceMove(drop_location())
-		if(user && Adjacent(user) && !issiliconoradminghost(user))
+		if(user && Adjacent(user) && (!issiliconoradminghost(user) || iscyborg(user)))
 			user.put_in_hands(beaker)
 
 	beaker = null
@@ -118,7 +118,7 @@
 	. = ..()
 	if(.)
 		return
-	if(!ishuman(usr) || isAI(usr))
+	if(!(ishuman(usr) || iscyborg(usr)))
 		return
 
 	var/mob/living/user = usr

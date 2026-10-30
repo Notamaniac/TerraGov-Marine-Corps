@@ -267,6 +267,13 @@
 /mob/living/silicon/robot/put_in_r_hand(obj/item/W)
 	return FALSE
 
+//What would have gone in a hand goes in the manipulator if it is free and wants it, otherwise it ends up on the floor
+/mob/living/silicon/robot/put_in_hands(obj/item/W, del_on_fail = FALSE)
+	var/obj/item/cyborg_manipulator/hand = selected_item
+	if(istype(hand) && hand.try_hold(W))
+		return TRUE
+	return ..()
+
 /mob/living/silicon/robot/get_inactive_held_item()
 	return null
 
