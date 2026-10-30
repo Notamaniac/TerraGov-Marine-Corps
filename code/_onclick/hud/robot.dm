@@ -356,10 +356,15 @@
 	if(.)
 		return
 	var/mob/living/silicon/robot/borg = usr
+	var/list/modifiers = params2list(params)
+	//Shift click examines the tool in the slot, whether or not the slot works
+	if(modifiers["shift"])
+		if(shown_item)
+			borg.examinate(shown_item)
+		return
 	if(disabled)
 		borg.balloon_alert(borg, "slot offline")
 		return
-	var/list/modifiers = params2list(params)
 	if(modifiers[RIGHT_CLICK])
 		borg.unequip_slot(slot_num)
 		return
@@ -405,6 +410,10 @@
 	if(.)
 		return
 	var/mob/living/silicon/robot/borg = usr
+	//Shift click examines the tool
+	if(params2list(params)["shift"])
+		borg.examinate(tool)
+		return
 	borg.equip_module_item(tool)
 
 /atom/movable/screen/healths/robot
