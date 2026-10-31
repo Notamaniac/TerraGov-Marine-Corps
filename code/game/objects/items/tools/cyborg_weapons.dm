@@ -71,6 +71,14 @@
 	fire(target, user)
 	return TRUE
 
+//Anything out of reach is not clicked with the melee chain, only afterattack is called on the item
+/obj/item/cyborg_gun/afterattack(atom/target, mob/user, has_proximity, click_parameters)
+	. = ..()
+	if(. || has_proximity || target == user)
+		return
+	fire(target, user)
+	return TRUE
+
 ///Shoots at the target, if there is charge for it
 /obj/item/cyborg_gun/proc/fire(atom/target, mob/living/user)
 	if(next_fire > world.time || !isturf(user.loc))
