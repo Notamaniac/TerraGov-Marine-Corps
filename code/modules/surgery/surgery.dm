@@ -181,7 +181,7 @@
 			else
 				to_chat(user, span_warning("For some reason the surgery you were doing stopped being possible."))
 
-		else if((tool in user.contents) && user.Adjacent(M)) //Or
+		else if(((tool in user.contents) || (tool.loc in user.contents)) && user.Adjacent(M)) //Or. A cyborg keeps the real tool inside its omnitool or manipulator
 			if(M.stat == CONSCIOUS) //If not on anesthetics or not unconsious, warn player
 				if(!CHECK_BITFIELD(M.species.species_flags, NO_PAIN))
 					M.emote("pain")
