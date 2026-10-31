@@ -104,11 +104,22 @@
 	if(machine_stat & (BROKEN|NOPOWER))
 		return
 	var/obj/item/cell/borg_cell = charging_borg.cell
-	if(!borg_cell || borg_cell.is_fully_charged())
+	if(!borg_cell)
+		return
+	if(borg_cell.is_fully_charged())
+		finish_charging()
 		return
 	var/given = min(CYBORG_CHARGER_RATE, borg_cell.maxcharge - borg_cell.charge)
 	borg_cell.give(given)
 	use_power(given / GLOB.CELLRATE)
 	charging_borg.update_power_state()
 	if(borg_cell.is_fully_charged())
-		to_chat(charging_borg, span_notice("Your cell is fully charged."))
+		finish_charging()
+
+///The cell is full, the charger pings and lets the cyborg out
+/obj/machinery/cyborg_charger/proc/finish_charging()
+	var/mob/living/silicon/robot/done_borg = charging_borg
+	playsound(src, 'sound/machines/ping.ogg', 50, TRUE)
+	visible_message(span_notice("[src] pings, [done_borg]'s cell is fully charged."))
+	to_chat(done_borg, span_notice("Your cell is fully charged."))
+	eject_borg()
