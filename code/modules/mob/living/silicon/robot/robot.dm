@@ -55,6 +55,10 @@
 	var/inactive_shell = FALSE
 	///Set while our cell is empty or missing. Without power we can't use our tools or our headlamp, we get both back once there is power again
 	var/out_of_power = FALSE
+	///The action that opens our minimap
+	var/datum/action/minimap/borg/mini
+	///Are we on the minimap yet. We only are once a player runs us and we are somewhere
+	var/minimap_marker_shown = FALSE
 
 /mob/living/silicon/robot/Initialize(mapload)
 	. = ..()
@@ -67,7 +71,17 @@
 		set_skills(getSkillsType(/datum/skills/synthetic))
 	var/datum/atom_hud/squad_hud = GLOB.huds[DATA_HUD_SQUAD_TERRAGOV]
 	squad_hud.add_hud_to(src)
+	mini = new
+	mini.give_action(src)
+	update_minimap_marker()
 	update_cyborg_icon()
+
+///Puts us on the minimap, the first time we are somewhere and a player runs us
+/mob/living/silicon/robot/proc/update_minimap_marker()
+	if(inactive_shell || minimap_marker_shown || !z)
+		return
+	minimap_marker_shown = TRUE
+	SSminimaps.add_marker(src, MINIMAP_FLAG_MARINE, image('icons/UI_icons/map_blips.dmi', null, "borg", MINIMAP_BLIPS_LAYER))
 
 /**
  * A cyborg shell nobody is playing. It is on the list of mobs ghosts can take over, and a ghost can also click it to be asked.
@@ -116,10 +130,12 @@
 		custom_name = chosen_name
 		fully_replace_character_name(real_name, custom_name)
 	update_names_joined_list(real_name)
+	update_minimap_marker()
 	update_cyborg_icon()
 	to_chat(src, span_notice("You switch on. Choose a module to begin."))
 
 /mob/living/silicon/robot/Destroy()
+	QDEL_NULL(mini)
 	QDEL_NULL(cell)
 	selected_item = null
 	slot_items.Cut()
@@ -206,6 +222,7 @@
 	. = ..()
 	if(stat == DEAD)
 		return
+	update_minimap_marker()
 	drain_cell()
 	if(stat == DEAD)
 		return

@@ -23,6 +23,10 @@
 	minimap_flags = MINIMAP_FLAG_MARINE
 	marker_flags = MINIMAP_FLAG_MARINE
 
+/datum/action/minimap/borg
+	minimap_flags = MINIMAP_FLAG_MARINE
+	marker_flags = MINIMAP_FLAG_MARINE
+
 /datum/action/minimap/som
 	minimap_flags = MINIMAP_FLAG_MARINE_SOM
 	marker_flags = MINIMAP_FLAG_MARINE_SOM
