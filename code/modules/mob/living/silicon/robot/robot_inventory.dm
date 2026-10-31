@@ -11,14 +11,6 @@
 	robot_hud.update_slots()
 	robot_hud.refresh_panel()
 
-//Sight is changed by the tools in our slots. They call this when they are equipped to one and when they are unequipped from it
-/mob/living/silicon/robot/update_sight()
-	var/new_sight = initial(sight)
-	if(stat != DEAD && locate(/obj/item/cyborg_meson_scanner) in slot_items)
-		new_sight |= SEE_TURFS
-	set_sight(new_sight)
-	return ..()
-
 // ***************************************
 // *********** Damage
 // ***************************************

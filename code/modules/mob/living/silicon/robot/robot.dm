@@ -189,7 +189,9 @@
 /mob/living/silicon/robot/on_death()
 	set_remote_interface(FALSE)
 	selected_item = null
-	update_sight()
+	//A dead cyborg's tools are not equipped any more
+	for(var/obj/item/slot_item AS in slot_items)
+		slot_item?.unequipped(src, SLOT_L_HAND)
 	var/datum/hud/robot/robot_hud = hud_used
 	if(istype(robot_hud))
 		robot_hud.close_panel()
@@ -423,8 +425,9 @@
 		cell = new cell_type(src)
 	. = ..()
 	recharge_cell()
-	//Dying turned the meson scanner off, if it is still in a slot it works again
-	update_sight()
+	//Dying unequipped the tools in our slots, they are equipped again
+	for(var/obj/item/slot_item AS in slot_items)
+		slot_item?.equipped(src, SLOT_L_HAND)
 
 /mob/living/silicon/robot/Moved(atom/old_loc, movement_dir, forced = FALSE, list/old_locs)
 	. = ..()

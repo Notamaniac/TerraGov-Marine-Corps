@@ -174,9 +174,10 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	module_items.Cut()
 	reservoir_stacks.Cut()
 	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
+		var/obj/item/slot_item = slot_items[slot_num]
 		slot_items[slot_num] = null
+		slot_item?.unequipped(src, SLOT_L_HAND)
 	selected_item = null
-	update_sight()
 	QDEL_NULL(module)
 
 	if(!custom_name)
@@ -442,7 +443,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 // ***************************************
 /**
  * Gives the cyborg meson vision for as long as it is in one of its slots, the same as a pair of optical meson goggles.
- * The sight itself is set by the cyborg, see update_sight() in robot_inventory.dm. We tell it when we are equipped to a slot and when we are unequipped from it.
+ * The cyborg calls equipped() and unequipped() on its tools when they go in or out of a slot, and we add and remove the sight flag there.
  */
 /obj/item/cyborg_meson_scanner
 	name = "optical meson scanner"
@@ -451,11 +452,10 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	icon_state = "meson"
 	w_class = WEIGHT_CLASS_SMALL
 
-//The cyborg works out its sight from the tools in its slots, so it is told whenever we enter one or leave one
 /obj/item/cyborg_meson_scanner/equipped(mob/user, slot)
 	. = ..()
-	user.update_sight()
+	user.add_sight(SEE_TURFS)
 
 /obj/item/cyborg_meson_scanner/unequipped(mob/unequipper, slot)
 	. = ..()
-	unequipper.update_sight()
+	unequipper.clear_sight(SEE_TURFS)
