@@ -55,8 +55,8 @@
 	var/inactive_shell = FALSE
 	///Set while our cell is empty or missing. Without power we can't use our tools or our headlamp, we get both back once there is power again
 	var/out_of_power = FALSE
-	///Where we were the last time our cell drained, a cyborg that has not moved since then drains much less
-	var/turf/last_drain_turf
+	///Set whenever we move, a cyborg that has not moved since the last time its cell drained loses much less
+	var/moved_since_drain = FALSE
 	///The action that opens our minimap
 	var/datum/action/minimap/borg/mini
 	///Are we on the minimap yet. We only are once a player runs us and we are somewhere
@@ -137,7 +137,6 @@
 	to_chat(src, span_notice("You switch on. Choose a module to begin."))
 
 /mob/living/silicon/robot/Destroy()
-	last_drain_turf = null
 	QDEL_NULL(mini)
 	QDEL_NULL(cell)
 	selected_item = null
@@ -425,13 +424,16 @@
 	. = ..()
 	recharge_cell()
 
+/mob/living/silicon/robot/Moved(atom/old_loc, movement_dir, forced = FALSE, list/old_locs)
+	. = ..()
+	moved_since_drain = TRUE
+
 ///Takes this tick's power from the cell, a lot less if we stayed where we were. If it can't give it we are out of power
 /mob/living/silicon/robot/proc/drain_cell()
 	if(status_flags & GODMODE || inactive_shell)
 		return
-	var/turf/current_turf = get_turf(src)
-	var/drain = current_turf == last_drain_turf ? CYBORG_CELL_DRAIN_IDLE : CYBORG_CELL_DRAIN
-	last_drain_turf = current_turf
+	var/drain = moved_since_drain ? CYBORG_CELL_DRAIN : CYBORG_CELL_DRAIN_IDLE
+	moved_since_drain = FALSE
 	if(!cell?.use(drain))
 		set_out_of_power(TRUE)
 		return
