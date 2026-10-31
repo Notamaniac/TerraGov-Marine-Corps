@@ -269,10 +269,20 @@
 
 //What would have gone in a hand goes in the manipulator if it is free and wants it, otherwise it ends up on the floor
 /mob/living/silicon/robot/put_in_hands(obj/item/W, del_on_fail = FALSE)
+	//Pulling something makes a grab that has to be held. We click with our tools, so it just stays inside us until we let go
+	if(isgrabitem(W))
+		W.forceMove(src)
+		return TRUE
 	var/obj/item/cyborg_manipulator/hand = selected_item
 	if(istype(hand) && hand.try_hold(W))
 		return TRUE
 	return ..()
+
+//Letting go of what we pull gets rid of the grab we kept
+/mob/living/silicon/robot/stop_pulling()
+	. = ..()
+	for(var/obj/item/grab/old_grab in src)
+		qdel(old_grab)
 
 /mob/living/silicon/robot/get_inactive_held_item()
 	return null
