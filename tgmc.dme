@@ -1147,6 +1147,7 @@
 #include "code\game\objects\items\tools\cleaning_tools.dm"
 #include "code\game\objects\items\tools\cyborg_omnitool.dm"
 #include "code\game\objects\items\tools\cyborg_tools.dm"
+#include "code\game\objects\items\tools\cyborg_weapons.dm"
 #include "code\game\objects\items\tools\deconstructor.dm"
 #include "code\game\objects\items\tools\extinguisher.dm"
 #include "code\game\objects\items\tools\flame_tools.dm"

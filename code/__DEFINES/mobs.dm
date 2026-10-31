@@ -1080,6 +1080,14 @@ GLOBAL_LIST_INIT(ai_damtype_to_heal_list, list(
 #define CYBORG_HYPO_REGEN 2
 ///How much charge refilling one unit of a cyborg hypospray takes from the cell of the cyborg
 #define CYBORG_HYPO_CELL_COST 20
+///How much charge the cell of a cyborg pays to refill one unit of the charge of a cyborg gun
+#define CYBORG_WEAPON_CELL_COST 20
+///How much charge the cell of a cyborg pays to refill one unit of charge of the cell of a cyborg's power fist or stun baton
+#define CYBORG_WEAPON_BATTERY_COST 1
+///How much charge the power fist of a cyborg refills each tick, while its cyborg has power
+#define CYBORG_FIST_REGEN 20
+///How much charge the stun baton of a cyborg refills each tick, while its cyborg has power
+#define CYBORG_BATON_REGEN 200
 ///How much metal a cyborg's reservoir holds. Metal sheets, barbed wire and razor wire are all made out of it
 #define CYBORG_METAL_RESERVE_MAX 100
 ///How much plasteel a cyborg's reservoir holds
