@@ -423,6 +423,8 @@
 		cell = new cell_type(src)
 	. = ..()
 	recharge_cell()
+	//Dying turned the meson scanner off, if it is still in a slot it works again
+	update_sight()
 
 /mob/living/silicon/robot/Moved(atom/old_loc, movement_dir, forced = FALSE, list/old_locs)
 	. = ..()

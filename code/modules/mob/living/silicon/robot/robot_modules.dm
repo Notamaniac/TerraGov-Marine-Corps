@@ -176,6 +176,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
 		slot_items[slot_num] = null
 	selected_item = null
+	update_sight()
 	QDEL_NULL(module)
 
 	if(!custom_name)
@@ -440,12 +441,21 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 // *********** Meson scanner
 // ***************************************
 /**
- * Gives the cyborg meson vision for as long as it is the tool the cyborg has selected, the same as a pair of optical meson goggles.
- * The sight itself is set by the cyborg, see update_sight() in robot_inventory.dm.
+ * Gives the cyborg meson vision for as long as it is in one of its slots, the same as a pair of optical meson goggles.
+ * The sight itself is set by the cyborg, see update_sight() in robot_inventory.dm. We tell it when we are equipped to a slot and when we are unequipped from it.
  */
 /obj/item/cyborg_meson_scanner
 	name = "optical meson scanner"
-	desc = "Scans the surroundings with meson radiation, letting a cyborg see the structure of what is around it. Only works while it is the tool you have selected."
+	desc = "Scans the surroundings with meson radiation, letting a cyborg see the structure of what is around it. Works for as long as it is equipped in one of your slots."
 	icon = 'icons/obj/clothing/glasses.dmi'
 	icon_state = "meson"
 	w_class = WEIGHT_CLASS_SMALL
+
+//The cyborg works out its sight from the tools in its slots, so it is told whenever we enter one or leave one
+/obj/item/cyborg_meson_scanner/equipped(mob/user, slot)
+	. = ..()
+	user.update_sight()
+
+/obj/item/cyborg_meson_scanner/unequipped(mob/unequipper, slot)
+	. = ..()
+	unequipper.update_sight()

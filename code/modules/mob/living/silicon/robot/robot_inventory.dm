@@ -5,18 +5,16 @@
 
 ///Tells the HUD to redraw the slots and, if it is open, the tool panel
 /mob/living/silicon/robot/proc/update_module_hud()
-	//What we have selected changes what we see, and every change to it ends up here
-	update_sight()
 	var/datum/hud/robot/robot_hud = hud_used
 	if(!istype(robot_hud))
 		return
 	robot_hud.update_slots()
 	robot_hud.refresh_panel()
 
-//Sight is only ever changed by the tool we have selected
+//Sight is changed by the tools in our slots. They call this when they are equipped to one and when they are unequipped from it
 /mob/living/silicon/robot/update_sight()
 	var/new_sight = initial(sight)
-	if(stat != DEAD && istype(selected_item, /obj/item/cyborg_meson_scanner))
+	if(stat != DEAD && locate(/obj/item/cyborg_meson_scanner) in slot_items)
 		new_sight |= SEE_TURFS
 	set_sight(new_sight)
 	return ..()
@@ -67,6 +65,7 @@
 		if(lost_item == selected_item)
 			selected_item = null
 		slot_items[slot_num] = null
+		lost_item.unequipped(src, SLOT_L_HAND)
 	to_chat(src, span_danger("Slot [slot_num] is knocked offline by damage![lost_item ? " Your [lost_item.name] is back on the panel." : ""]"))
 
 ///Returns the number of the slots that damage has not taken away
@@ -105,6 +104,7 @@
 		to_chat(src, span_warning(get_working_slot_count() < CYBORG_SLOT_COUNT ? "All of your working slots are full, stow something first." : "All of your slots are full, stow something first."))
 		return FALSE
 	slot_items[free_slot] = tool
+	tool.equipped(src, SLOT_L_HAND)
 	to_chat(src, span_notice("You equip your [tool.name] in slot [free_slot]."))
 	if(selected_item)
 		update_module_hud()
@@ -122,6 +122,7 @@
 	if(stowed_item == selected_item)
 		selected_item = null
 	slot_items[slot_num] = null
+	stowed_item.unequipped(src, SLOT_L_HAND)
 	to_chat(src, span_notice("You stow your [stowed_item.name]."))
 	update_module_hud()
 	return TRUE
@@ -205,6 +206,7 @@
 	var/slot_num = get_slot_of(gone_item)
 	if(slot_num)
 		slot_items[slot_num] = null
+		gone_item.unequipped(src, SLOT_L_HAND)
 	if(selected_item == gone_item)
 		selected_item = null
 
