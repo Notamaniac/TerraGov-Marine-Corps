@@ -1080,6 +1080,8 @@ GLOBAL_LIST_INIT(ai_damtype_to_heal_list, list(
 #define CYBORG_HYPO_REGEN 2
 ///How much charge refilling one unit of a cyborg hypospray takes from the cell of the cyborg
 #define CYBORG_HYPO_CELL_COST 20
+///How much charge a cyborg charger gives the cell of the cyborg inside it each tick
+#define CYBORG_CHARGER_RATE 500
 ///How much charge the cell of a cyborg pays to refill one unit of the charge of a cyborg gun
 #define CYBORG_WEAPON_CELL_COST 20
 ///How much charge the cell of a cyborg pays to refill one unit of charge of the cell of a cyborg's power fist or stun baton

@@ -68,7 +68,7 @@ GLOBAL_LIST_INIT(strippable_parrot_items, create_strippable_list(list(
 	var/obj/parrot_perch = null
 	var/obj/desired_perches = list(/obj/structure/displaycase, /obj/structure/filingcabinet, /obj/machinery/teleport, \
 									/obj/machinery/computer, /obj/machinery/telecomms, /obj/machinery/nuclearbomb,	\
-									/obj/machinery/recharge_station, /obj/machinery/smartfridge, /obj/machinery/suit_storage_unit)
+									/obj/machinery/recharge_station, /obj/machinery/cyborg_charger, /obj/machinery/smartfridge, /obj/machinery/suit_storage_unit)
 	var/obj/item/held_item = null
 
 
