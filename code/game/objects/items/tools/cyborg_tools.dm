@@ -197,53 +197,74 @@
 	return TRUE
 
 /**
- * Drains an APC's cell into the cell of the cyborg using it. Every module carries one, see base_item_types in robot_modules.dm.
- * Use it on an APC, it keeps pulling until the cyborg is full, the APC is empty or the cyborg is interrupted.
+ * Drains the charge of a power source into the cell of the cyborg using it. Every module carries one, see base_item_types in robot_modules.dm.
+ * Use it on an APC, a loose power cell, or a cell charger with a cell in it. It keeps pulling until the cyborg is full, the source is empty or the cyborg is interrupted.
  */
 /obj/item/cyborg_tesla
 	name = "tesla charger"
-	desc = "Drains the cell of an APC to charge a cyborg. Use it on an APC."
+	desc = "Drains the charge of an APC, a power cell or a cell charger to charge a cyborg. Use it on one."
 	icon = 'icons/obj/machines/deployable/sentry/tesla.dmi'
 	//Placeholder sprite
 	icon_state = "tesla_coil_handheld"
 	w_class = WEIGHT_CLASS_SMALL
 	item_flags = NOBLUDGEON
 
+///Is this something we can drain, whether or not it has charge to give
+/obj/item/cyborg_tesla/proc/is_power_source(atom/target)
+	return istype(target, /obj/machinery/power/apc) || istype(target, /obj/item/cell) || istype(target, /obj/machinery/cell_charger)
+
+///The cell that has the charge of a power source, null if it has none to drain
+/obj/item/cyborg_tesla/proc/get_source_cell(atom/target)
+	if(istype(target, /obj/item/cell))
+		return target
+	if(istype(target, /obj/machinery/power/apc))
+		var/obj/machinery/power/apc/apc = target
+		return (apc.machine_stat & BROKEN) ? null : apc.cell
+	if(istype(target, /obj/machinery/cell_charger))
+		var/obj/machinery/cell_charger/charger = target
+		return charger.charging
+	return null
+
 /obj/item/cyborg_tesla/preattack(atom/target, mob/user, params)
 	var/mob/living/silicon/robot/borg = user
-	if(!istype(borg) || !istype(target, /obj/machinery/power/apc) || !borg.Adjacent(target))
+	if(!istype(borg) || !is_power_source(target) || target == borg.cell || !borg.Adjacent(target))
 		return ..()
-	drain_apc(target, borg)
+	drain_power(target, borg)
 	return TRUE
 
-///Pulls charge out of the APC until something stops it
-/obj/item/cyborg_tesla/proc/drain_apc(obj/machinery/power/apc/apc, mob/living/silicon/robot/borg)
+///Pulls charge out of the power source until something stops it
+/obj/item/cyborg_tesla/proc/drain_power(atom/source, mob/living/silicon/robot/borg)
 	if(!borg.cell)
 		borg.balloon_alert(borg, "no power cell")
 		return
-	if(!apc.cell || (apc.machine_stat & BROKEN))
-		borg.balloon_alert(borg, "apc has no cell")
+	if(!get_source_cell(source))
+		borg.balloon_alert(borg, "no cell to drain")
 		return
 	if(borg.cell.is_fully_charged())
 		borg.balloon_alert(borg, "already full")
 		return
-	borg.visible_message(span_notice("[borg] touches [apc] with [src]."), span_notice("You start drawing power from [apc]."))
-	while(!QDELETED(apc) && !QDELETED(borg) && borg.cell && apc.cell && !borg.cell.is_fully_charged())
-		if(!do_after(borg, CYBORG_TESLA_PULSE_TIME, NONE, apc, BUSY_ICON_BUILD))
+	borg.visible_message(span_notice("[borg] touches [source] with [src]."), span_notice("You start drawing power from [source]."))
+	while(!QDELETED(source) && !QDELETED(borg) && borg.cell && !borg.cell.is_fully_charged())
+		if(!do_after(borg, CYBORG_TESLA_PULSE_TIME, NONE, source, BUSY_ICON_BUILD))
 			return
-		if(!borg.cell || !apc.cell)
+		var/obj/item/cell/source_cell = get_source_cell(source)
+		if(!borg.cell || !source_cell || !borg.Adjacent(source))
 			return
-		var/taken = min(CYBORG_TESLA_DRAIN, apc.cell.charge, borg.cell.maxcharge - borg.cell.charge)
-		if(taken <= 0 || !apc.cell.use(taken))
-			borg.balloon_alert(borg, "apc is drained")
+		var/taken = min(CYBORG_TESLA_DRAIN, source_cell.charge, borg.cell.maxcharge - borg.cell.charge)
+		if(taken <= 0 || !source_cell.use(taken))
+			borg.balloon_alert(borg, "drained")
 			return
+		source_cell.update_appearance(UPDATE_ICON)
+		if(istype(source, /obj/machinery/cell_charger))
+			var/obj/machinery/cell_charger/charger = source
+			charger.updateicon()
 		borg.cell.give(taken)
 		borg.update_power_state()
 		var/datum/effect_system/spark_spread/sparks = new
-		sparks.set_up(2, 0, apc)
-		sparks.attach(apc)
+		sparks.set_up(2, 0, source)
+		sparks.attach(source)
 		sparks.start()
-		playsound(apc, 'sound/effects/sparks2.ogg', 25, TRUE)
+		playsound(source, 'sound/effects/sparks2.ogg', 25, TRUE)
 	if(borg.cell?.is_fully_charged())
 		borg.balloon_alert(borg, "fully charged")
 
