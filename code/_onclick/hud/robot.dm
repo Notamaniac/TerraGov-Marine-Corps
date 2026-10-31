@@ -258,6 +258,10 @@
 /obj/item/proc/get_hud_count()
 	return null
 
+///A short text a cyborg's slot shows in the corner of the item, null for none. A hypospray shows which chem it is set to
+/obj/item/proc/get_hud_label()
+	return null
+
 ///The states of this item's icon a cyborg's slot draws over the item, for tools that show they are on with an overlay
 /obj/item/proc/get_hud_overlay_states()
 	return list()
@@ -305,13 +309,18 @@
 ///Changes what we show, only redrawing if something actually changed
 /atom/movable/screen/robot/module_slot/proc/set_item(obj/item/new_item, new_selected)
 	var/new_text = ""
+	var/hud_label = new_item?.get_hud_label()
+	if(hud_label)
+		new_text = "<div align='left'>[hud_label]</div>"
 	if(istype(new_item, /obj/item/stack))
 		var/obj/item/stack/new_stack = new_item
-		new_text = MAPTEXT_TINY_UNICODE("<div align='right'>[new_stack.amount]</div>")
-	if(!new_text && new_item)
+		new_text += "<div align='right'>[new_stack.amount]</div>"
+	else if(new_item)
 		var/hud_count = new_item.get_hud_count()
 		if(!isnull(hud_count))
-			new_text = MAPTEXT_TINY_UNICODE("<div align='right'>[hud_count]</div>")
+			new_text += "<div align='right'>[hud_count]</div>"
+	if(new_text)
+		new_text = MAPTEXT_TINY_UNICODE(new_text)
 	var/obj/item/cyborg_manipulator/hand = new_item
 	var/obj/item/new_held = istype(hand) ? hand.get_held() : null
 	var/new_overlays = new_item ? jointext(new_item.get_hud_overlay_states(), ",") : ""

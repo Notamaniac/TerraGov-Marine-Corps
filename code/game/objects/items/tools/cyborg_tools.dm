@@ -296,6 +296,10 @@
 /obj/item/cyborg_hypospray/get_hud_count()
 	return round(chem_charge)
 
+//The slot of a cyborg shows the first two letters of the chem we are set to
+/obj/item/cyborg_hypospray/get_hud_label()
+	return uppertext(copytext(get_chem_name(), 1, 3))
+
 ///Refills the reservoir, which costs the cyborg's cell some charge
 /obj/item/cyborg_hypospray/process()
 	if(chem_charge >= CYBORG_HYPO_MAX_CHARGE)
