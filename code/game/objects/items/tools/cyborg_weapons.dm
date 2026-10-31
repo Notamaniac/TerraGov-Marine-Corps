@@ -62,6 +62,7 @@
 	if(!pay_cyborg_cell(refill * CYBORG_WEAPON_CELL_COST))
 		return
 	charge += refill
+	update_icon()
 
 /obj/item/cyborg_gun/preattack(atom/target, mob/user, params)
 	if(target == user || target == src)
@@ -89,6 +90,7 @@
 	next_fire = world.time + fire_delay
 	user.changeNext_move(fire_delay)
 	charge -= shot_cost
+	update_icon()
 	var/atom/movable/projectile/shot = new(get_turf(user))
 	shot.generate_bullet(ammo_datum_type)
 	shot.def_zone = user.zone_selected
@@ -98,10 +100,26 @@
 	shot.fire_at(target, user, src, shot.ammo.max_range, shot.projectile_speed)
 	return TRUE
 
-///A laser gun, hitscan bolts of the same kind as the marine lasrifle
+///A laser gun, hitscan bolts of the same kind as the marine lasrifle. Its sprite shows how much charge is left
 /obj/item/cyborg_gun/laser
 	name = "laser gun"
 	desc = "A laser gun that refills itself from the cyborg's power cell. Click to shoot."
+	icon = 'icons/obj/items_cyborg.dmi'
+	icon_state = "laser_cyborg"
+
+///The state of items_cyborg.dmi that shows how much charge is left, drawn over the gun
+/obj/item/cyborg_gun/laser/proc/get_charge_state()
+	if(charge < shot_cost)
+		return "laser_cyborg_empty"
+	return "laser_cyborg_charge[clamp(ceil(charge / max_charge * 4), 1, 4)]"
+
+/obj/item/cyborg_gun/laser/update_overlays()
+	. = ..()
+	. += get_charge_state()
+
+//The slot of a cyborg draws the charge over the gun too
+/obj/item/cyborg_gun/laser/get_hud_overlay_states()
+	return list(get_charge_state())
 
 ///A pistol of 9mm armour piercing rounds that pass through anyone carrying an ID with the TGMC IFF signal
 /obj/item/cyborg_gun/pistol

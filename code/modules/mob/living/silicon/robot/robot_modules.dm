@@ -2,7 +2,7 @@
 GLOBAL_LIST_INIT(cyborg_modules, list(
 	"Combat Engineer" = /datum/robot_module/engineer,
 	"Field Medic" = /datum/robot_module/medical,
-	"Combat Unit" = /datum/robot_module/combat,
+	"Security Unit" = /datum/robot_module/combat,
 ))
 
 /**
@@ -72,10 +72,10 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	huds = list(DATA_HUD_MEDICAL_OBSERVER)
 
 /datum/robot_module/combat
-	name = "Combat Unit"
+	name = "Security Unit"
 	desc = "Fights. Carries a laser gun, an IFF pistol, a power fist, a stun baton, an energy sword and a flash. Everything with ammo refills itself from the cyborg's power cell."
 	name_prefix = "Guard"
-	hud_icon_state = "combat"
+	hud_icon_state = "security"
 	cyborg_base_icon = "sec"
 	transform_time = 2.8 SECONDS
 	item_types = list(
