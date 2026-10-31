@@ -1064,6 +1064,8 @@ GLOBAL_LIST_INIT(ai_damtype_to_heal_list, list(
 #define CYBORG_DAMAGE_MAX_SLOWDOWN 1
 ///How much charge the power cell of a cyborg loses every tick of its life
 #define CYBORG_CELL_DRAIN 10
+///How much charge the power cell of a cyborg loses every tick of its life while it has not moved since the last one
+#define CYBORG_CELL_DRAIN_IDLE 1
 ///The share of charge left at which a cyborg warns that it is running low
 #define CYBORG_LOW_POWER_PERCENT 20
 ///How long it takes to pull the power cell out of a cyborg
