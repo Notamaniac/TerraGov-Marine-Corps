@@ -260,6 +260,8 @@
 	item_flags = NOBLUDGEON
 	///What is left in the reservoir, any chem can use it
 	var/chem_charge = CYBORG_HYPO_MAX_CHARGE
+	///What it is called before the chem it is set to
+	var/label = "cyborg hypospray"
 	///The chem it injects
 	var/selected_chem = /datum/reagent/medicine/bicaridine
 	///How much one injection gives
@@ -272,6 +274,10 @@
 		/datum/reagent/medicine/kelotane,
 		/datum/reagent/medicine/inaprovaline,
 	)
+
+///The chems it can make
+/obj/item/cyborg_hypospray/proc/get_chems()
+	return chems
 
 /obj/item/cyborg_hypospray/Initialize(mapload)
 	. = ..()
@@ -309,19 +315,19 @@
 
 ///Names the hypospray after the chem it is set to
 /obj/item/cyborg_hypospray/proc/update_chem_name()
-	name = "cyborg hypospray ([get_chem_name()])"
+	name = "[label] ([get_chem_name()])"
 
 //Opens the radial menu of chems
 /obj/item/cyborg_hypospray/attack_self(mob/user)
 	var/list/choices = list()
-	for(var/datum/reagent/chem_type AS in chems)
+	for(var/datum/reagent/chem_type AS in get_chems())
 		var/image/chem_image = image(icon = icon, icon_state = icon_state)
 		chem_image.color = initial(chem_type.color)
 		choices[initial(chem_type.name)] = chem_image
 	var/choice = show_radial_menu(user, src, choices, custom_check = CALLBACK(src, PROC_REF(can_use_menu), user), require_near = TRUE, tooltips = TRUE)
 	if(!choice || !can_use_menu(user))
 		return
-	for(var/datum/reagent/chem_type AS in chems)
+	for(var/datum/reagent/chem_type AS in get_chems())
 		if(initial(chem_type.name) != choice)
 			continue
 		selected_chem = chem_type
@@ -373,6 +379,26 @@
 	user.balloon_alert(user, "injects [target]")
 	to_chat(target, span_warning("You feel a tiny prick!"))
 	to_chat(user, span_notice("[dose] units of [get_chem_name()] injected. [round(chem_charge)] units left in the reservoir."))
+
+/**
+ * The second hypospray of a field medic, for the harder cases. It works like the first, with its own reservoir.
+ */
+/obj/item/cyborg_hypospray/advanced
+	name = "advanced cyborg hypospray"
+	label = "advanced cyborg hypospray"
+	selected_chem = /datum/reagent/medicine/alkysine
+	///The chems it can make
+	var/static/list/advanced_chems = list(
+		/datum/reagent/medicine/alkysine,
+		/datum/reagent/medicine/meralyne,
+		/datum/reagent/medicine/dermaline,
+		/datum/reagent/medicine/imidazoline,
+		/datum/reagent/hypervene,
+		/datum/reagent/medicine/quickclot,
+	)
+
+/obj/item/cyborg_hypospray/advanced/get_chems()
+	return advanced_chems
 
 /**
  * The roller bed rack of a cyborg. It holds one folded roller bed. Clicking a loose folded one, or a roller bed that nobody is on, folds it into the rack,
