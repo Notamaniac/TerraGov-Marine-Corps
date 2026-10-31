@@ -51,8 +51,8 @@
 /obj/machinery/iv_drip/MouseDrop(over_object, src_location, over_location)
 	..()
 
-	if(ishuman(usr))
-		var/mob/living/carbon/human/H = usr
+	if(isliving(usr) && usr.dextrous)
+		var/mob/living/H = usr
 		if(H.stat || get_dist(H, src) > 1 || is_blind(H) || H.lying_angle)
 			return
 
