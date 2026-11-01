@@ -400,6 +400,11 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 /obj/item/stack/sheet/metal/cyborg/preattack(atom/target, mob/user, params)
 	return convert_into_reservoir(target, user) || ..()
 
+///How much metal one of a wire type costs in the metal recipes, the metal it takes over the amount it makes
+/proc/get_cyborg_wire_cost(wire_type)
+	var/datum/stack_recipe/recipe = GLOB.metal_recipes[wire_type]
+	return recipe.req_amount / recipe.res_amount
+
 /obj/item/stack/barbed_wire/cyborg
 	merge_type = /obj/item/stack/barbed_wire/cyborg
 
