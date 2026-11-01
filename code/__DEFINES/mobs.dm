@@ -1096,7 +1096,3 @@ GLOBAL_LIST_INIT(ai_damtype_to_heal_list, list(
 #define CYBORG_METAL_RESERVE_MAX 100
 ///How much plasteel a cyborg's reservoir holds
 #define CYBORG_PLASTEEL_RESERVE_MAX 50
-///How much metal one barbed wire takes from the reservoir, the metal it costs to build one in the metal recipes
-#define CYBORG_BARBED_WIRE_COST (get_cyborg_wire_cost(/obj/item/stack/barbed_wire))
-///How much metal one razor wire takes from the reservoir, the metal it costs to build one in the metal recipes
-#define CYBORG_RAZORWIRE_COST (get_cyborg_wire_cost(/obj/item/stack/razorwire))

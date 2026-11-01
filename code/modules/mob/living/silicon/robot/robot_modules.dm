@@ -293,9 +293,9 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	else if(istype(source, /obj/item/stack/sheet/metal))
 		metal_value = 1
 	else if(istype(source, /obj/item/stack/barbed_wire))
-		metal_value = CYBORG_BARBED_WIRE_COST
+		metal_value = get_cyborg_wire_cost(/obj/item/stack/barbed_wire)
 	else if(istype(source, /obj/item/stack/razorwire))
-		metal_value = CYBORG_RAZORWIRE_COST
+		metal_value = get_cyborg_wire_cost(/obj/item/stack/razorwire)
 	else
 		return FALSE
 	var/room = is_plasteel ? CYBORG_PLASTEEL_RESERVE_MAX - plasteel_reserve : CYBORG_METAL_RESERVE_MAX - metal_reserve
@@ -410,14 +410,14 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 
 //The recipe is only known at runtime, so the most we can hold is worked out here
 /obj/item/stack/barbed_wire/cyborg/Initialize(mapload, new_amount)
-	max_amount = CYBORG_METAL_RESERVE_MAX / CYBORG_BARBED_WIRE_COST
+	max_amount = CYBORG_METAL_RESERVE_MAX / get_cyborg_wire_cost(/obj/item/stack/barbed_wire)
 	return ..()
 
 /obj/item/stack/barbed_wire/cyborg/get_amount()
-	return get_reservoir_amount(src, CYBORG_BARBED_WIRE_COST)
+	return get_reservoir_amount(src, get_cyborg_wire_cost(/obj/item/stack/barbed_wire))
 
 /obj/item/stack/barbed_wire/cyborg/use(used)
-	return use_reservoir(src, used, CYBORG_BARBED_WIRE_COST)
+	return use_reservoir(src, used, get_cyborg_wire_cost(/obj/item/stack/barbed_wire))
 
 /obj/item/stack/barbed_wire/cyborg/add(extra)
 	return FALSE
@@ -432,14 +432,14 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	merge_type = /obj/item/stack/razorwire/cyborg
 
 /obj/item/stack/razorwire/cyborg/Initialize(mapload, new_amount)
-	max_amount = CYBORG_METAL_RESERVE_MAX / CYBORG_RAZORWIRE_COST
+	max_amount = CYBORG_METAL_RESERVE_MAX / get_cyborg_wire_cost(/obj/item/stack/razorwire)
 	return ..()
 
 /obj/item/stack/razorwire/cyborg/get_amount()
-	return get_reservoir_amount(src, CYBORG_RAZORWIRE_COST)
+	return get_reservoir_amount(src, get_cyborg_wire_cost(/obj/item/stack/razorwire))
 
 /obj/item/stack/razorwire/cyborg/use(used)
-	return use_reservoir(src, used, CYBORG_RAZORWIRE_COST)
+	return use_reservoir(src, used, get_cyborg_wire_cost(/obj/item/stack/razorwire))
 
 /obj/item/stack/razorwire/cyborg/add(extra)
 	return FALSE
