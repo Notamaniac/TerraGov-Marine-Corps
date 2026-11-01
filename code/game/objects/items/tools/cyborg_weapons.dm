@@ -43,6 +43,7 @@
 	var/turf/auto_target
 	///The cyborg whose mouse we listen to for automatic fire
 	var/mob/living/silicon/robot/borg_owner
+	actions_types = list(/datum/action/item_action/cyborg_firemode)
 
 /obj/item/cyborg_gun/Initialize(mapload)
 	. = ..()
@@ -73,6 +74,8 @@
 	SEND_SIGNAL(src, COMSIG_GUN_FIRE_MODE_TOGGLE, fire_mode)
 	user.balloon_alert(user, fire_mode == GUN_FIREMODE_AUTOMATIC ? "automatic" : "semi-automatic")
 	playsound(user, 'sound/weapons/guns/interact/selector.ogg', 15, 1)
+	for(var/datum/action/item_action/cyborg_firemode/firemode_action in actions)
+		firemode_action.update_button_icon()
 
 ///Starts firing when the button goes down on something we can shoot at, if we are on automatic
 /obj/item/cyborg_gun/proc/start_auto_fire(datum/source, atom/object, turf/location, control, params)
@@ -270,3 +273,25 @@
 	if(!pay_cyborg_cell(refill * CYBORG_WEAPON_BATTERY_COST))
 		return
 	bcell.give(refill)
+
+///The button for switching a cyborg gun between semi-automatic and automatic, the cyborg has it while the gun is in one of its slots
+/datum/action/item_action/cyborg_firemode
+	use_obj_appeareance = FALSE
+	///The fire mode our button shows
+	var/shown_firemode
+
+/datum/action/item_action/cyborg_firemode/update_button_icon()
+	var/obj/item/cyborg_gun/gun = target
+	if(!gun || gun.fire_mode == shown_firemode)
+		return ..()
+	shown_firemode = gun.fire_mode
+	if(gun.fire_mode == GUN_FIREMODE_AUTOMATIC)
+		button.name = "Automatic Firemode ([gun.name])"
+		action_icon_state = "fmode_single_auto"
+	else
+		button.name = "Semi-Automatic Firemode ([gun.name])"
+		action_icon_state = "fmode_single"
+	return ..()
+
+/datum/action/item_action/cyborg_firemode/handle_button_status_visuals()
+	button.color = rgb(255,255,255,255)
