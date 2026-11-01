@@ -401,8 +401,12 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	return convert_into_reservoir(target, user) || ..()
 
 /obj/item/stack/barbed_wire/cyborg
-	max_amount = CYBORG_METAL_RESERVE_MAX / CYBORG_BARBED_WIRE_COST
 	merge_type = /obj/item/stack/barbed_wire/cyborg
+
+//The recipe is only known at runtime, so the most we can hold is worked out here
+/obj/item/stack/barbed_wire/cyborg/Initialize(mapload, new_amount)
+	max_amount = CYBORG_METAL_RESERVE_MAX / CYBORG_BARBED_WIRE_COST
+	return ..()
 
 /obj/item/stack/barbed_wire/cyborg/get_amount()
 	return get_reservoir_amount(src, CYBORG_BARBED_WIRE_COST)
@@ -420,8 +424,11 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	return convert_into_reservoir(target, user) || ..()
 
 /obj/item/stack/razorwire/cyborg
-	max_amount = CYBORG_METAL_RESERVE_MAX / CYBORG_RAZORWIRE_COST
 	merge_type = /obj/item/stack/razorwire/cyborg
+
+/obj/item/stack/razorwire/cyborg/Initialize(mapload, new_amount)
+	max_amount = CYBORG_METAL_RESERVE_MAX / CYBORG_RAZORWIRE_COST
+	return ..()
 
 /obj/item/stack/razorwire/cyborg/get_amount()
 	return get_reservoir_amount(src, CYBORG_RAZORWIRE_COST)
