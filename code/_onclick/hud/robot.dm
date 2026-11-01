@@ -58,6 +58,13 @@
 	pull_icon.update_icon()
 	hotkeybuttons += pull_icon
 
+	//The zone we aim at, our melee attacks and the shots of our guns go for it
+	zone_sel = new /atom/movable/screen/zone_sel(null, src)
+	zone_sel.icon = ui_style
+	zone_sel.alpha = ui_alpha
+	zone_sel.set_selected_zone(BODY_ZONE_CHEST, owner)
+	static_inventory += zone_sel
+
 	healths = new /atom/movable/screen/healths/robot(null, src)
 	infodisplay += healths
 
