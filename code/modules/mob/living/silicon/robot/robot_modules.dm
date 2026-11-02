@@ -491,7 +491,28 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		return
 	return ..()
 
+//Using it on a loose coil next to us refills it, as much as fits
 /obj/item/stack/cable_coil/cyborg/preattack(atom/target, mob/user, params)
+	if(refill_from(target, user))
+		return TRUE
 	if(!check_has_cable(user))
 		return TRUE
 	return ..()
+
+///Takes cable from a loose coil on the floor next to us. Returns whether target was one, even if nothing could be taken
+/obj/item/stack/cable_coil/cyborg/proc/refill_from(atom/target, mob/user)
+	if(!istype(target, /obj/item/stack/cable_coil) || istype(target, /obj/item/stack/cable_coil/cyborg) || !isturf(target.loc) || !user.Adjacent(target))
+		return FALSE
+	var/obj/item/stack/cable_coil/source = target
+	var/taken = min(source.get_amount(), max_amount - amount)
+	if(taken <= 0)
+		user.balloon_alert(user, source.get_amount() ? "coil full" : "nothing to take")
+		return TRUE
+	if(!source.use(taken))
+		return TRUE
+	amount += taken
+	update_weight()
+	update_icon()
+	playsound(user, 'sound/items/deconstruct.ogg', 25, TRUE)
+	user.balloon_alert(user, "+[taken] cable")
+	return TRUE
