@@ -39,7 +39,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 		/obj/item/tool/weldingtool/cyborg,
 		/obj/item/tool/cyborg_omnitool/engineering,
 		/obj/item/tool/cyborg_omnitool/engineering,
-		/obj/item/stack/cable_coil,
+		/obj/item/stack/cable_coil/cyborg,
 		/obj/item/stack/sheet/metal/cyborg,
 		/obj/item/stack/barbed_wire/cyborg,
 		/obj/item/stack/razorwire/cyborg,
@@ -471,3 +471,27 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 /obj/item/cyborg_meson_scanner/unequipped(mob/unequipper, slot)
 	. = ..()
 	unequipper.clear_sight(SEE_TURFS)
+
+///The cable of a cyborg is not used up when it runs out, it stays at 0 and can't be used until it is refilled
+/obj/item/stack/cable_coil/cyborg
+	merge_type = /obj/item/stack/cable_coil/cyborg
+
+/obj/item/stack/cable_coil/cyborg/zero_amount()
+	return FALSE
+
+///Nothing can be done with a coil that has no cable left
+/obj/item/stack/cable_coil/cyborg/proc/check_has_cable(mob/user)
+	if(amount >= 1)
+		return TRUE
+	user?.balloon_alert(user, "out of cable")
+	return FALSE
+
+/obj/item/stack/cable_coil/cyborg/attack_self(mob/user)
+	if(!check_has_cable(user))
+		return
+	return ..()
+
+/obj/item/stack/cable_coil/cyborg/preattack(atom/target, mob/user, params)
+	if(!check_has_cable(user))
+		return TRUE
+	return ..()
