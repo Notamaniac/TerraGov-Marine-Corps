@@ -33,7 +33,7 @@
 		return FALSE
 	var/mob/living/carbon/human/target = M
 
-	if(!ishuman(user))
+	if(!user.dextrous)
 		target.balloon_alert(user, "not dextrous enough!")
 		return FALSE
 

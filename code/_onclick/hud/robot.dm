@@ -269,6 +269,42 @@
 /obj/item/proc/get_hud_label()
 	return null
 
+///Stacks show how many they hold
+/obj/item/stack/get_hud_count()
+	return amount
+
+///The text the HUD of a cyborg draws over this item, the label in the left and the count in the right. Empty for an item with neither
+/obj/item/proc/get_hud_text()
+	var/hud_text = ""
+	var/hud_label = get_hud_label()
+	if(hud_label)
+		hud_text = "<div align='left'>[hud_label]</div>"
+	var/hud_count = get_hud_count()
+	if(!isnull(hud_count))
+		hud_text += "<div align='right'>[hud_count]</div>"
+	if(hud_text)
+		hud_text = MAPTEXT_TINY_UNICODE(hud_text)
+	return hud_text
+
+///The overlays the HUD of a cyborg draws over this item, as images with an icon, an icon state and maybe a colour. For tools that show what they hold
+/obj/item/proc/get_hud_overlays()
+	return list()
+
+///Makes the picture that carries the text of a slot. It is added after everything else so it is drawn over the item
+/proc/make_cyborg_hud_text_overlay(hud_text)
+	var/mutable_appearance/text_overlay = mutable_appearance('icons/misc/12x12.dmi')
+	text_overlay.maptext = hud_text
+	text_overlay.maptext_width = 32
+	text_overlay.maptext_y = 2
+	return text_overlay
+
+///Joins what the HUD draws over an item into one text, to see whether it changed
+/proc/get_cyborg_hud_overlays_key(list/images)
+	var/key = ""
+	for(var/mutable_appearance/image AS in images)
+		key += "[image.icon]/[image.icon_state]/[image.color];"
+	return key
+
 ///The states of this item's icon a cyborg's slot draws over the item, for tools that show they are on with an overlay
 /obj/item/proc/get_hud_overlay_states()
 	return list()
@@ -276,8 +312,6 @@
 /atom/movable/screen/robot/module_slot
 	name = "module"
 	icon_state = "inv1"
-	maptext_width = 32
-	maptext_y = 2
 	///Which of the three slots this is
 	var/slot_num = 1
 	///The tool we show, if any
@@ -289,6 +323,8 @@
 	var/shown_icon_state
 	///The overlays of the tool as we last drew them, joined into one text
 	var/shown_overlays = ""
+	///The text we last drew over the tool
+	var/shown_text = ""
 	///The item a manipulator in the slot holds, which is drawn on it
 	var/obj/item/shown_held
 	///Is the slot knocked out by damage
@@ -315,23 +351,11 @@
 
 ///Changes what we show, only redrawing if something actually changed
 /atom/movable/screen/robot/module_slot/proc/set_item(obj/item/new_item, new_selected)
-	var/new_text = ""
-	var/hud_label = new_item?.get_hud_label()
-	if(hud_label)
-		new_text = "<div align='left'>[hud_label]</div>"
-	if(istype(new_item, /obj/item/stack))
-		var/obj/item/stack/new_stack = new_item
-		new_text += "<div align='right'>[new_stack.amount]</div>"
-	else if(new_item)
-		var/hud_count = new_item.get_hud_count()
-		if(!isnull(hud_count))
-			new_text += "<div align='right'>[hud_count]</div>"
-	if(new_text)
-		new_text = MAPTEXT_TINY_UNICODE(new_text)
+	var/new_text = new_item ? new_item.get_hud_text() : ""
 	var/obj/item/cyborg_manipulator/hand = new_item
 	var/obj/item/new_held = istype(hand) ? hand.get_held() : null
-	var/new_overlays = new_item ? jointext(new_item.get_hud_overlay_states(), ",") : ""
-	if(shown_overlays == new_overlays && shown_item == new_item && selected == new_selected && maptext == new_text && shown_icon == new_item?.icon && shown_icon_state == new_item?.icon_state && shown_held == new_held)
+	var/new_overlays = new_item ? jointext(new_item.get_hud_overlay_states(), ",") + get_cyborg_hud_overlays_key(new_item.get_hud_overlays()) : ""
+	if(shown_overlays == new_overlays && shown_item == new_item && selected == new_selected && shown_text == new_text && shown_icon == new_item?.icon && shown_icon_state == new_item?.icon_state && shown_held == new_held)
 		return
 	shown_overlays = new_overlays
 	shown_held = new_held
@@ -339,7 +363,7 @@
 	shown_icon = new_item?.icon
 	shown_icon_state = new_item?.icon_state
 	selected = new_selected
-	maptext = new_text
+	shown_text = new_text
 	name = disabled ? "module [slot_num] (offline)" : (new_item ? "module [slot_num]: [new_item.name]" : "module [slot_num]")
 	update_icon()
 
@@ -361,10 +385,14 @@
 		. += mutable_appearance(shown_item.icon, shown_item.icon_state)
 		for(var/overlay_state in shown_item.get_hud_overlay_states())
 			. += mutable_appearance(shown_item.icon, overlay_state)
+		. += shown_item.get_hud_overlays()
 	if(shown_held)
 		var/mutable_appearance/held_appearance = mutable_appearance(shown_held.icon, shown_held.icon_state)
 		held_appearance.transform = matrix().Scale(0.6, 0.6)
 		. += held_appearance
+	//Last, so the text is drawn over the item
+	if(shown_text)
+		. += make_cyborg_hud_text_overlay(shown_text)
 
 //A slot knocked out by damage does nothing. Left click readies the tool. On a ready tool, a click on the tool uses it (opens the construction menu of a sheet and so on) and a click on the frame lowers it. Right click puts it back on the panel
 /atom/movable/screen/robot/module_slot/Click(location, control, params)
@@ -420,6 +448,12 @@
 	. = ..()
 	if(tool)
 		. += mutable_appearance(tool.icon, tool.icon_state)
+		for(var/overlay_state in tool.get_hud_overlay_states())
+			. += mutable_appearance(tool.icon, overlay_state)
+		. += tool.get_hud_overlays()
+		var/tool_text = tool.get_hud_text()
+		if(tool_text)
+			. += make_cyborg_hud_text_overlay(tool_text)
 
 /atom/movable/screen/robot/tool_entry/Click(location, control, params)
 	. = ..()

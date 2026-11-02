@@ -287,6 +287,8 @@
 	var/selected_chem = /datum/reagent/medicine/bicaridine
 	///How much one injection gives
 	var/dose = 5
+	///The state of the fill bar we last drew, so the picture is only redrawn when it changes
+	var/shown_fill
 	///The chems it can make
 	var/static/list/chems = list(
 		/datum/reagent/medicine/bicaridine,
@@ -332,6 +334,7 @@
 	if(!borg.cell.use(refill * CYBORG_HYPO_CELL_COST))
 		return
 	chem_charge += refill
+	refresh_fill()
 
 ///The name of the chem we are set to
 /obj/item/cyborg_hypospray/proc/get_chem_name()
@@ -341,6 +344,49 @@
 ///Names the hypospray after the chem it is set to
 /obj/item/cyborg_hypospray/proc/update_chem_name()
 	name = "[label] ([get_chem_name()])"
+	refresh_fill(TRUE)
+
+///The state of the fill bar for what is left in the reservoir, null if it is empty
+/obj/item/cyborg_hypospray/proc/get_fill_state()
+	var/percent = round(chem_charge / CYBORG_HYPO_MAX_CHARGE * 100)
+	if(percent <= 0)
+		return null
+	switch(percent)
+		if(1 to 9)
+			return "[initial(icon_state)]-10"
+		if(10 to 24)
+			return "[initial(icon_state)]10"
+		if(25 to 49)
+			return "[initial(icon_state)]25"
+		if(50 to 64)
+			return "[initial(icon_state)]50"
+		if(65 to 79)
+			return "[initial(icon_state)]65"
+		if(80 to 90)
+			return "[initial(icon_state)]80"
+	return "[initial(icon_state)]100"
+
+///Redraws the fill bar if it is not what we last drew, or always if forced
+/obj/item/cyborg_hypospray/proc/refresh_fill(force = FALSE)
+	var/new_fill = get_fill_state()
+	if(!force && new_fill == shown_fill)
+		return
+	shown_fill = new_fill
+	update_icon()
+
+///The bar of the chem we are set to, as full as the reservoir. It is in the colour of the chem
+/obj/item/cyborg_hypospray/get_hud_overlays()
+	var/fill_state = get_fill_state()
+	if(!fill_state)
+		return list()
+	var/datum/reagent/chem_type = selected_chem
+	var/mutable_appearance/filling = mutable_appearance('icons/obj/reagentfillings.dmi', fill_state)
+	filling.color = initial(chem_type.color)
+	return list(filling)
+
+/obj/item/cyborg_hypospray/update_overlays()
+	. = ..()
+	. += get_hud_overlays()
 
 //Opens the radial menu of chems
 /obj/item/cyborg_hypospray/attack_self(mob/user)
@@ -401,6 +447,7 @@
 	injection.trans_to(target, dose)
 	qdel(injection)
 	chem_charge -= dose
+	refresh_fill()
 	user.balloon_alert(user, "injects [target]")
 	to_chat(target, span_warning("You feel a tiny prick!"))
 	to_chat(user, span_notice("[dose] units of [get_chem_name()] injected. [round(chem_charge)] units left in the reservoir."))
@@ -411,6 +458,7 @@
 /obj/item/cyborg_hypospray/advanced
 	name = "advanced cyborg hypospray"
 	label = "advanced cyborg hypospray"
+	icon_state = "hypomed"
 	selected_chem = /datum/reagent/medicine/alkysine
 	///The chems it can make
 	var/static/list/advanced_chems = list(
