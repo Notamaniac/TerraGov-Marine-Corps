@@ -49,6 +49,7 @@
 	tool_behaviour = new_form.tool_behaviour
 	toolspeed = new_form.toolspeed
 	usesound = new_form.usesound
+	hitsound = new_form.hitsound
 	force = new_form.force
 	sharp = new_form.sharp
 	attack_verb = new_form.attack_verb

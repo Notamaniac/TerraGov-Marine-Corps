@@ -148,6 +148,7 @@
 
 		affected.in_surgery_op = TRUE
 		surgery_step.begin_step(user, M, user.zone_selected, tool, affected) //Start on it
+		tool.play_tool_sound(M)
 
 		//Success multiplers!
 		var/multipler = 1 //1 = 100%

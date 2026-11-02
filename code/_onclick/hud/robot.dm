@@ -283,7 +283,7 @@
 	if(!isnull(hud_count))
 		hud_text += "<div align='right'>[hud_count]</div>"
 	if(hud_text)
-		hud_text = MAPTEXT_TINY_UNICODE(hud_text)
+		hud_text = MAPTEXT_GRAND9K(hud_text)
 	return hud_text
 
 ///The overlays the HUD of a cyborg draws over this item, as images with an icon, an icon state and maybe a colour. For tools that show what they hold
@@ -291,11 +291,11 @@
 	return list()
 
 ///Makes the picture that carries the text of a slot. It is added after everything else so it is drawn over the item
-/proc/make_cyborg_hud_text_overlay(hud_text)
+/proc/make_cyborg_hud_text_overlay(hud_text, text_y = 2)
 	var/mutable_appearance/text_overlay = mutable_appearance('icons/misc/12x12.dmi')
 	text_overlay.maptext = hud_text
 	text_overlay.maptext_width = 32
-	text_overlay.maptext_y = 2
+	text_overlay.maptext_y = text_y
 	return text_overlay
 
 ///Joins what the HUD draws over an item into one text, to see whether it changed

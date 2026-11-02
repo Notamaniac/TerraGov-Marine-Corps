@@ -392,9 +392,7 @@
 /obj/item/cyborg_hypospray/attack_self(mob/user)
 	var/list/choices = list()
 	for(var/datum/reagent/chem_type AS in get_chems())
-		var/image/chem_image = image(icon = icon, icon_state = icon_state)
-		chem_image.color = initial(chem_type.color)
-		choices[initial(chem_type.name)] = chem_image
+		choices[initial(chem_type.name)] = get_chem_bottle_image(chem_type)
 	var/choice = show_radial_menu(user, src, choices, custom_check = CALLBACK(src, PROC_REF(can_use_menu), user), require_near = TRUE, tooltips = TRUE)
 	if(!choice || !can_use_menu(user))
 		return
@@ -408,6 +406,15 @@
 		if(istype(borg))
 			borg.update_module_hud()
 		return
+
+///The picture of a chem for a menu, a bottle full of it with the first two letters of its name over it
+/proc/get_chem_bottle_image(datum/reagent/chem_type)
+	var/image/bottle_image = image(icon = 'icons/obj/items/chemistry.dmi', icon_state = "bottle-1")
+	var/mutable_appearance/filling = mutable_appearance('icons/obj/reagentfillings.dmi', "bottle-1-100")
+	filling.color = initial(chem_type.color)
+	bottle_image.overlays += filling
+	bottle_image.overlays += make_cyborg_hud_text_overlay(MAPTEXT_GRAND9K("<div align='center'>[uppertext(copytext(initial(chem_type.name), 1, 3))]</div>"), 10)
+	return bottle_image
 
 ///The menu closes itself when this stops being true
 /obj/item/cyborg_hypospray/proc/can_use_menu(mob/user)
