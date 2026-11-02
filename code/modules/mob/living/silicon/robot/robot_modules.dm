@@ -1,8 +1,8 @@
 ///The modules a cyborg can choose from, keyed by the name shown to the player
 GLOBAL_LIST_INIT(cyborg_modules, list(
-	"Combat Engineer" = /datum/robot_module/engineer,
-	"Field Medic" = /datum/robot_module/medical,
-	"Security Unit" = /datum/robot_module/combat,
+	"Engineering" = /datum/robot_module/engineer,
+	"Medical" = /datum/robot_module/medical,
+	"Security" = /datum/robot_module/combat,
 ))
 
 /**
@@ -29,9 +29,9 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	var/transform_time = 0 SECONDS
 
 /datum/robot_module/engineer
-	name = "Combat Engineer"
-	desc = "Builds and repairs. Carries the engineer's toolkit, cable and building materials. Light your welder, then click a selected sheet or press the use key to open its construction menu."
-	name_prefix = "Builder"
+	name = "Engineering"
+	desc = "Builds and repairs. Carries the engineer's toolkit, cable and building materials."
+	name_prefix = "Engineering"
 	hud_icon_state = "engineer"
 	cyborg_base_icon = "engineer"
 	transform_time = 4.5 SECONDS
@@ -51,9 +51,9 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	)
 
 /datum/robot_module/medical
-	name = "Field Medic"
+	name = "Medical"
 	desc = "Treats the wounded. Carries a health analyzer and a supply of dressings, and sees the medical HUD."
-	name_prefix = "Medic"
+	name_prefix = "Medical"
 	hud_icon_state = "medical"
 	cyborg_base_icon = "medical"
 	transform_time = 3.6 SECONDS
@@ -72,7 +72,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	huds = list(DATA_HUD_MEDICAL_OBSERVER)
 
 /datum/robot_module/combat
-	name = "Security Unit"
+	name = "Security"
 	desc = "Fights. Carries a laser gun, an IFF pistol, a power fist, a stun baton, an energy sword and a flash. Everything with ammo refills itself from the cyborg's power cell."
 	name_prefix = "Guard"
 	hud_icon_state = "security"
