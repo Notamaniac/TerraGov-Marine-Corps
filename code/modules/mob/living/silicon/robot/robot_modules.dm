@@ -14,7 +14,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 	///Shown to the player when they are choosing
 	var/desc = ""
 	///What the cyborg is called once it picks us, followed by a serial number
-	var/name_prefix = "Unit"
+	var/name_prefix = "Cyborg"
 	///Typepaths of every tool we hand out. Stacks are refilled over time, welders are refuelled
 	var/list/item_types = list()
 	///The tools every module hands out, before its own item_types
@@ -31,7 +31,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 /datum/robot_module/engineer
 	name = "Engineering"
 	desc = "Builds and repairs. Carries the engineer's toolkit, cable and building materials."
-	name_prefix = "Engineering"
+	name_prefix = "Engineering Cyborg"
 	hud_icon_state = "engineer"
 	cyborg_base_icon = "engineer"
 	transform_time = 4.5 SECONDS
@@ -53,7 +53,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 /datum/robot_module/medical
 	name = "Medical"
 	desc = "Treats the wounded. Carries a health analyzer and a supply of dressings, and sees the medical HUD."
-	name_prefix = "Medical"
+	name_prefix = "Medical Cyborg"
 	hud_icon_state = "medical"
 	cyborg_base_icon = "medical"
 	transform_time = 3.6 SECONDS
@@ -74,7 +74,7 @@ GLOBAL_LIST_INIT(cyborg_modules, list(
 /datum/robot_module/combat
 	name = "Security"
 	desc = "Fights. Carries a laser gun, an IFF pistol, a power fist, a stun baton, an energy sword and a flash. Everything with ammo refills itself from the cyborg's power cell."
-	name_prefix = "Guard"
+	name_prefix = "Security Cyborg"
 	hud_icon_state = "security"
 	cyborg_base_icon = "sec"
 	transform_time = 2.8 SECONDS
