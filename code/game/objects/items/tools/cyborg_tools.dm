@@ -163,7 +163,7 @@
 	update_borg_hud(user)
 
 /**
- * The manipulator of a field medic. It holds the things a medic hands around, bottles, beakers, pills and blood bags, so they can be loaded into the chem machines and hung on an IV drip.
+ * The manipulator of the medic module. It holds the things a medic hands around, bottles, beakers, pills and blood bags, so they can be loaded into the chem machines and hung on an IV drip.
  * Empty, it also works as a hand on machines, which is how the chem machines are opened, and takes the bag off an IV drip.
  */
 /obj/item/cyborg_manipulator/medical
