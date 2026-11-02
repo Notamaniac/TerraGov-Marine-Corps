@@ -75,3 +75,20 @@
 	var/mob/living/silicon/robot/borg = user.mob
 	borg.cycle_lamp()
 	return TRUE
+
+/datum/keybinding/cyborg/cycle_slots
+	hotkey_keys = list("X")
+	name = "cyborg_cycle_slots"
+	full_name = "Cycle module slots"
+	description = "Selects the tool in the next module slot that has one."
+	keybind_signal = COMSIG_KB_CYBORG_CYCLE_SLOT_DOWN
+
+/datum/keybinding/cyborg/cycle_slots/down(client/user)
+	if(!iscyborg(user.mob))
+		return FALSE
+	. = ..()
+	if(.)
+		return
+	var/mob/living/silicon/robot/borg = user.mob
+	borg.cycle_slots()
+	return TRUE

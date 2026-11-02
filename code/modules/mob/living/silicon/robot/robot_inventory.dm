@@ -164,10 +164,6 @@
 			return select_slot(slot_num)
 	return FALSE
 
-//Swapping hands cycles through our slots instead
-/mob/living/silicon/robot/swap_hand()
-	cycle_slots()
-
 // ***************************************
 // *********** Using the tool in a slot
 // ***************************************
