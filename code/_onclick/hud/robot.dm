@@ -31,21 +31,21 @@
 	//Our icons only exist in one style, whatever the player picked in their preferences
 	ui_style = 'icons/mob/screen/cyborg.dmi'
 
-	//Tool slots and the module button stay on screen in every HUD mode, the cyborg is useless without them
+	//All of it goes away with the rest of the HUD, the keybindings still work without it
 	module_button = new(null, src)
-	always_visible_inventory += module_button
+	static_inventory += module_button
 	lamp_button = new(null, src)
-	always_visible_inventory += lamp_button
+	static_inventory += lamp_button
 	radio_button = new(null, src)
-	always_visible_inventory += radio_button
+	static_inventory += radio_button
 	battery_icon = new(null, src)
-	always_visible_inventory += battery_icon
+	infodisplay += battery_icon
 	//Not in any of the hud lists, refresh_panel puts it on the screen when the panel opens
 	store_button = new(null, src)
 	for(var/slot_num in 1 to CYBORG_SLOT_COUNT)
 		var/atom/movable/screen/robot/module_slot/slot = new(null, src, slot_num)
 		slots += slot
-		always_visible_inventory += slot
+		static_inventory += slot
 
 	var/atom/movable/screen/using = new /atom/movable/screen/act_intent/corner(null, src)
 	using.icon_state = owner.a_intent
@@ -140,7 +140,8 @@
 	var/client/hud_client = mymob?.client
 	hud_client?.screen -= panel_entries
 	QDEL_LIST(panel_entries)
-	if(!panel_open)
+	//The panel goes away with the rest of the HUD
+	if(!panel_open || !hud_shown)
 		hud_client?.screen -= store_button
 		return
 	hud_client?.screen += store_button
