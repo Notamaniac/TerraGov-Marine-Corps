@@ -11,7 +11,6 @@
 	name = "retractor"
 	desc = "For fine manipulation during surgery."
 	icon_state = "retractor"
-	usesound = 'sound/items/jaws_pry.ogg'
 	atom_flags = CONDUCT
 	w_class = WEIGHT_CLASS_SMALL
 
@@ -19,7 +18,6 @@
 	name = "hemostat"
 	desc = "For removing foreign objects during surgery."
 	icon_state = "hemostat"
-	usesound = 'sound/items/ratchet.ogg'
 	atom_flags = CONDUCT
 	w_class = WEIGHT_CLASS_SMALL
 	attack_verb = list("attacks", "pinches")
@@ -28,7 +26,6 @@
 	name = "cautery"
 	desc = "For closing incisions to finish a surgery."
 	icon_state = "cautery"
-	usesound = 'sound/items/lighter_on.ogg'
 	atom_flags = CONDUCT
 	w_class = WEIGHT_CLASS_TINY
 	attack_verb = list("burns")
@@ -38,7 +35,6 @@
 	desc = "You can drill using this item. You dig?"
 	icon_state = "drill"
 	hitsound = 'sound/weapons/circsawhit.ogg'
-	usesound = 'sound/weapons/circsawhit.ogg'
 	atom_flags = CONDUCT
 	force = 15
 	w_class = WEIGHT_CLASS_SMALL
@@ -52,8 +48,6 @@
 	name = "scalpel"
 	desc = "Cut, cut, and once more cut."
 	icon_state = "scalpel"
-	hitsound = 'sound/weapons/bladeslice.ogg'
-	usesound = 'sound/weapons/bladeslice.ogg'
 	atom_flags = CONDUCT
 	force = 20
 	sharp = IS_SHARP_ITEM_ACCURATE
@@ -94,7 +88,6 @@
 	desc = "For opening someone's ribcage, surgically."
 	icon_state = "saw"
 	hitsound = 'sound/weapons/circsawhit.ogg'
-	usesound = 'sound/weapons/circsawhit.ogg'
 	atom_flags = CONDUCT
 	force = 30
 	w_class = WEIGHT_CLASS_SMALL
@@ -110,7 +103,6 @@
 	name = "bone gel"
 	desc = "For repairing fractures and closing ribcages."
 	icon_state = "bone-gel"
-	usesound = 'sound/items/deconstruct.ogg'
 	force = 0
 	w_class = WEIGHT_CLASS_SMALL
 	throwforce = 1
@@ -119,7 +111,6 @@
 	name = "FixOVein"
 	desc = "For fixing internal bleeding."
 	icon_state = "fixovein"
-	usesound = 'sound/items/tick.ogg'
 	force = 0
 	throwforce = 1
 	w_class = WEIGHT_CLASS_SMALL
@@ -128,8 +119,6 @@
 /obj/item/tool/surgery/bonesetter
 	name = "bone setter"
 	icon_state = "bonesetter"
-	hitsound = 'sound/weapons/genhit.ogg'
-	usesound = 'sound/effects/bone_break1.ogg'
 	desc = "For setting fractured bone after bone gel is applied."
 	force = 8
 	throwforce = 9
@@ -141,8 +130,6 @@
 /obj/item/tool/surgery/suture
 	name = "surgical suture"
 	icon_state = "suture"
-	hitsound = 'sound/weapons/pierce.ogg'
-	usesound = 'sound/items/tick.ogg'
 	desc = "For healing basic brute and burn damage during surgery."
 	force = 3
 	throwforce = 0
@@ -152,7 +139,6 @@
 /obj/item/tool/surgery/surgical_membrane
 	name = "surgical membrane"
 	icon_state = "surgical_membrane"
-	usesound = 'sound/items/deconstruct.ogg'
 	desc = "For repairing damaged organs and necrotized tissue during surgery."
 	force = 0
 	throwforce = 0

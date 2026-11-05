@@ -131,7 +131,7 @@
 		return FALSE
 	if(buckling_mob == user)
 		return FALSE
-	if(!user.dextrous) //xenos buckling humans into op tables and applying anesthetic masks? no way.
+	if(!(ishuman(user) || iscyborg(user))) //xenos buckling humans into op tables and applying anesthetic masks? no way.
 		to_chat(user, span_xenowarning("We don't have the manual dexterity to do this."))
 		return FALSE
 	if(buckling_mob != victim)

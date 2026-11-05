@@ -148,7 +148,10 @@
 
 		affected.in_surgery_op = TRUE
 		surgery_step.begin_step(user, M, user.zone_selected, tool, affected) //Start on it
-		tool.play_tool_sound(M)
+		//The tools of a cyborg's omnitool make their own noises, other tools make none
+		var/obj/item/tool/cyborg_omnitool/omnitool = tool.loc
+		if(istype(omnitool))
+			omnitool.play_tool_sound(M)
 
 		//Success multiplers!
 		var/multipler = 1 //1 = 100%

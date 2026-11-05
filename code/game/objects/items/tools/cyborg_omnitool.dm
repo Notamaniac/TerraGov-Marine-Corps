@@ -15,6 +15,10 @@
 	w_class = WEIGHT_CLASS_SMALL
 	///The typepaths of the tools this can become. The first one is what it starts as
 	var/list/tool_forms = list()
+	///The sounds the tool of a form makes when it is used on something, by the typepath of the form. A form that is not in it keeps its own
+	var/list/form_use_sounds = list()
+	///The sounds the tool of a form makes when it hits something, by the typepath of the form
+	var/list/form_hit_sounds = list()
 	///The real tools we can become, in the order of tool_forms
 	var/list/obj/item/form_items = list()
 	///The tool we are at the moment, one of form_items
@@ -23,7 +27,12 @@
 /obj/item/tool/cyborg_omnitool/Initialize(mapload)
 	. = ..()
 	for(var/form_type in tool_forms)
-		form_items += new form_type(src)
+		var/obj/item/new_form = new form_type(src)
+		if(form_use_sounds[form_type])
+			new_form.usesound = form_use_sounds[form_type]
+		if(form_hit_sounds[form_type])
+			new_form.hitsound = form_hit_sounds[form_type]
+		form_items += new_form
 	if(length(form_items))
 		set_form(form_items[1], silent = TRUE)
 
@@ -119,4 +128,22 @@
 		/obj/item/tool/surgery/FixOVein,
 		/obj/item/tool/surgery/suture,
 		/obj/item/tool/surgery/surgical_membrane,
+	)
+	form_use_sounds = list(
+		/obj/item/tool/surgery/retractor = 'sound/items/jaws_pry.ogg',
+		/obj/item/tool/surgery/hemostat = 'sound/items/ratchet.ogg',
+		/obj/item/tool/surgery/cautery = 'sound/items/lighter_on.ogg',
+		/obj/item/tool/surgery/surgicaldrill = 'sound/weapons/circsawhit.ogg',
+		/obj/item/tool/surgery/scalpel = 'sound/weapons/bladeslice.ogg',
+		/obj/item/tool/surgery/circular_saw = 'sound/weapons/circsawhit.ogg',
+		/obj/item/tool/surgery/bonegel = 'sound/items/deconstruct.ogg',
+		/obj/item/tool/surgery/FixOVein = 'sound/items/tick.ogg',
+		/obj/item/tool/surgery/bonesetter = 'sound/effects/bone_break1.ogg',
+		/obj/item/tool/surgery/suture = 'sound/items/tick.ogg',
+		/obj/item/tool/surgery/surgical_membrane = 'sound/items/deconstruct.ogg',
+	)
+	form_hit_sounds = list(
+		/obj/item/tool/surgery/scalpel = 'sound/weapons/bladeslice.ogg',
+		/obj/item/tool/surgery/bonesetter = 'sound/weapons/genhit.ogg',
+		/obj/item/tool/surgery/suture = 'sound/weapons/pierce.ogg',
 	)
