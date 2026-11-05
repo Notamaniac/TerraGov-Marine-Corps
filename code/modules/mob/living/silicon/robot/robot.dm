@@ -226,7 +226,6 @@
 	. = ..()
 	if(stat == DEAD)
 		return
-	update_minimap_marker()
 	drain_cell()
 	if(stat == DEAD)
 		return
@@ -432,6 +431,8 @@
 /mob/living/silicon/robot/Moved(atom/old_loc, movement_dir, forced = FALSE, list/old_locs)
 	. = ..()
 	moved_since_drain = TRUE
+	//The first time we are somewhere. Initialize and taking over a shell look too, this is for the borg that was in nullspace
+	update_minimap_marker()
 
 ///Takes this tick's power from the cell, a lot less if we stayed where we were. If it can't give it we are out of power
 /mob/living/silicon/robot/proc/drain_cell()

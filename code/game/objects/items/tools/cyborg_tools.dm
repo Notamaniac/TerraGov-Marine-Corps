@@ -1,4 +1,21 @@
 /**
+ * What the tools of a cyborg share: paying for what they refill out of the cell of the cyborg carrying them.
+ */
+///Takes the cost of refilling a weapon out of the cell of the cyborg carrying it. Returns whether it could be paid
+/obj/item/proc/pay_cyborg_cell(cost)
+	var/mob/living/silicon/robot/borg = loc
+	if(!istype(borg) || !borg.cell || borg.out_of_power)
+		return FALSE
+	return borg.cell.use(cost)
+
+///How much of a refill we get, paid for by the cell of the cyborg carrying us: the refill rate or what is missing, whichever is less. 0 if nothing is missing or it could not be paid
+/obj/item/proc/take_cyborg_refill(rate, missing, cost)
+	var/refill = min(rate, missing)
+	if(refill <= 0 || !pay_cyborg_cell(refill * cost))
+		return 0
+	return refill
+
+/**
  * The engineering tools as a cyborg carries them. They are the ordinary tools, only drawn with the cyborg sprites,
  * so they stay a subtype and every check for the tool's typepath still accepts them.
  */
@@ -289,6 +306,8 @@
 	var/dose = 5
 	///The state of the fill bar we last drew, so the picture is only redrawn when it changes
 	var/shown_fill
+	///The fill bar, in the colour of the chem
+	var/mutable_appearance/fill_overlay
 	///The chems it can make
 	var/static/list/chems = list(
 		/datum/reagent/medicine/bicaridine,
@@ -305,6 +324,7 @@
 /obj/item/cyborg_hypospray/Initialize(mapload)
 	. = ..()
 	update_chem_name()
+	refresh_fill(TRUE)
 	START_PROCESSING(SSobj, src)
 
 /obj/item/cyborg_hypospray/Destroy()
@@ -327,11 +347,8 @@
 /obj/item/cyborg_hypospray/process()
 	if(chem_charge >= CYBORG_HYPO_MAX_CHARGE)
 		return
-	var/mob/living/silicon/robot/borg = loc
-	if(!istype(borg) || !borg.cell || borg.out_of_power)
-		return
-	var/refill = min(CYBORG_HYPO_REGEN, CYBORG_HYPO_MAX_CHARGE - chem_charge)
-	if(!borg.cell.use(refill * CYBORG_HYPO_CELL_COST))
+	var/refill = take_cyborg_refill(CYBORG_HYPO_REGEN, CYBORG_HYPO_MAX_CHARGE - chem_charge, CYBORG_HYPO_CELL_COST)
+	if(!refill)
 		return
 	chem_charge += refill
 	refresh_fill()
@@ -344,7 +361,6 @@
 ///Names the hypospray after the chem it is set to
 /obj/item/cyborg_hypospray/proc/update_chem_name()
 	name = "[label] ([get_chem_name()])"
-	refresh_fill(TRUE)
 
 ///The state of the fill bar for what is left in the reservoir, null if it is empty
 /obj/item/cyborg_hypospray/proc/get_fill_state()
@@ -366,23 +382,23 @@
 			return "[initial(icon_state)]80"
 	return "[initial(icon_state)]100"
 
-///Redraws the fill bar if it is not what we last drew, or always if forced
+///Redraws the fill bar if it is not what we last drew, or always if forced, as after the chem changed
 /obj/item/cyborg_hypospray/proc/refresh_fill(force = FALSE)
 	var/new_fill = get_fill_state()
 	if(!force && new_fill == shown_fill)
 		return
 	shown_fill = new_fill
+	if(new_fill)
+		var/datum/reagent/chem_type = selected_chem
+		fill_overlay = mutable_appearance('icons/obj/reagentfillings.dmi', new_fill)
+		fill_overlay.color = initial(chem_type.color)
+	else
+		fill_overlay = null
 	update_icon()
 
 ///The bar of the chem we are set to, as full as the reservoir. It is in the colour of the chem
 /obj/item/cyborg_hypospray/get_hud_overlays()
-	var/fill_state = get_fill_state()
-	if(!fill_state)
-		return list()
-	var/datum/reagent/chem_type = selected_chem
-	var/mutable_appearance/filling = mutable_appearance('icons/obj/reagentfillings.dmi', fill_state)
-	filling.color = initial(chem_type.color)
-	return list(filling)
+	return fill_overlay ? list(fill_overlay) : list()
 
 /obj/item/cyborg_hypospray/update_overlays()
 	. = ..()
@@ -401,6 +417,7 @@
 			continue
 		selected_chem = chem_type
 		update_chem_name()
+		refresh_fill(TRUE)
 		user.balloon_alert(user, "set to [choice]")
 		var/mob/living/silicon/robot/borg = user
 		if(istype(borg))
@@ -541,3 +558,70 @@
 	to_chat(user, span_notice("You pick up [folded_roller]."))
 	folded_roller.forceMove(src)
 	held = folded_roller
+
+// ***************************************
+// *********** Meson scanner
+// ***************************************
+/**
+ * Gives the cyborg meson vision for as long as it is in one of its slots, the same as a pair of optical meson goggles.
+ * The cyborg calls equipped() and unequipped() on its tools when they go in or out of a slot, and we add and remove the sight flag there.
+ */
+/obj/item/cyborg_meson_scanner
+	name = "optical meson scanner"
+	desc = "Scans the surroundings with meson radiation, letting a cyborg see the structure of what is around it. Works for as long as it is equipped in one of your slots."
+	icon = 'icons/obj/clothing/glasses.dmi'
+	icon_state = "meson"
+	w_class = WEIGHT_CLASS_SMALL
+
+/obj/item/cyborg_meson_scanner/equipped(mob/user, slot)
+	. = ..()
+	user.add_sight(SEE_TURFS)
+
+/obj/item/cyborg_meson_scanner/unequipped(mob/unequipper, slot)
+	. = ..()
+	unequipper.clear_sight(SEE_TURFS)
+
+///The cable of a cyborg is not used up when it runs out, it stays at 0 and can't be used until it is refilled
+/obj/item/stack/cable_coil/cyborg
+	merge_type = /obj/item/stack/cable_coil/cyborg
+
+/obj/item/stack/cable_coil/cyborg/zero_amount()
+	return FALSE
+
+///Nothing can be done with a coil that has no cable left
+/obj/item/stack/cable_coil/cyborg/proc/check_has_cable(mob/user)
+	if(amount >= 1)
+		return TRUE
+	user?.balloon_alert(user, "out of cable")
+	return FALSE
+
+/obj/item/stack/cable_coil/cyborg/attack_self(mob/user)
+	if(!check_has_cable(user))
+		return
+	return ..()
+
+//Using it on a loose coil next to us refills it, as much as fits
+/obj/item/stack/cable_coil/cyborg/preattack(atom/target, mob/user, params)
+	if(refill_from(target, user))
+		return TRUE
+	if(!check_has_cable(user))
+		return TRUE
+	return ..()
+
+///Takes cable from a loose coil on the floor next to us. Returns whether target was one, even if nothing could be taken
+/obj/item/stack/cable_coil/cyborg/proc/refill_from(atom/target, mob/user)
+	if(!istype(target, /obj/item/stack/cable_coil) || istype(target, /obj/item/stack/cable_coil/cyborg) || !isturf(target.loc) || !user.Adjacent(target))
+		return FALSE
+	var/obj/item/stack/cable_coil/source = target
+	var/taken = min(source.get_amount(), max_amount - amount)
+	if(taken <= 0)
+		user.balloon_alert(user, source.get_amount() ? "coil full" : "nothing to take")
+		return TRUE
+	if(!source.use(taken))
+		return TRUE
+	amount += taken
+	update_weight()
+	update_icon()
+	playsound(user, 'sound/items/deconstruct.ogg', 25, TRUE)
+	user.balloon_alert(user, "+[taken] cable")
+	return TRUE

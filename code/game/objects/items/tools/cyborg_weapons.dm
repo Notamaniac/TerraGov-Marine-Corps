@@ -4,13 +4,6 @@
  * Refilling is paid for by the cell of the cyborg carrying the weapon, and stops while the cyborg is out of power.
  */
 
-///Takes the cost of refilling a weapon out of the cell of the cyborg carrying it. Returns whether it could be paid
-/obj/item/proc/pay_cyborg_cell(cost)
-	var/mob/living/silicon/robot/borg = loc
-	if(!istype(borg) || !borg.cell || borg.out_of_power)
-		return FALSE
-	return borg.cell.use(cost)
-
 /**
  * A gun that fires from a charge. Click anything to shoot at it.
  * Clicking an adjacent thing that is not alive does not shoot, so the cyborg can still use the things around it with the gun in its slot.
@@ -140,8 +133,8 @@
 /obj/item/cyborg_gun/process()
 	if(charge >= max_charge)
 		return
-	var/refill = min(regen, max_charge - charge)
-	if(!pay_cyborg_cell(refill * CYBORG_WEAPON_CELL_COST))
+	var/refill = take_cyborg_refill(regen, max_charge - charge, CYBORG_WEAPON_CELL_COST)
+	if(!refill)
 		return
 	charge += refill
 	update_icon()
@@ -236,17 +229,20 @@
 	STOP_PROCESSING(SSobj, src)
 	return ..()
 
+///How much charge a punch takes at the power setting we are on, the same sum the power fist itself does
+/obj/item/weapon/powerfist/cyborg/proc/get_punch_cost()
+	return setting * 20
+
 //The slot of a cyborg shows how many punches are left at the power setting we are on
 /obj/item/weapon/powerfist/cyborg/get_hud_count()
-	return cell ? round(cell.charge / (setting * 20)) : 0
+	return cell ? round(cell.charge / get_punch_cost()) : 0
 
 /obj/item/weapon/powerfist/cyborg/process()
 	if(!cell || cell.is_fully_charged())
 		return
-	var/refill = min(CYBORG_FIST_REGEN, cell.maxcharge - cell.charge)
-	if(!pay_cyborg_cell(refill * CYBORG_WEAPON_BATTERY_COST))
-		return
-	cell.give(refill)
+	var/refill = take_cyborg_refill(CYBORG_FIST_REGEN, cell.maxcharge - cell.charge, CYBORG_WEAPON_BATTERY_COST)
+	if(refill)
+		cell.give(refill)
 
 /**
  * A stun baton that anyone can use, its cell refills over time.
@@ -269,10 +265,9 @@
 /obj/item/weapon/baton/cyborg/process()
 	if(!bcell || bcell.is_fully_charged())
 		return
-	var/refill = min(CYBORG_BATON_REGEN, bcell.maxcharge - bcell.charge)
-	if(!pay_cyborg_cell(refill * CYBORG_WEAPON_BATTERY_COST))
-		return
-	bcell.give(refill)
+	var/refill = take_cyborg_refill(CYBORG_BATON_REGEN, bcell.maxcharge - bcell.charge, CYBORG_WEAPON_BATTERY_COST)
+	if(refill)
+		bcell.give(refill)
 
 ///The button for switching a cyborg gun between semi-automatic and automatic, the cyborg has it while the gun is in one of its slots
 /datum/action/item_action/cyborg_firemode
