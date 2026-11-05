@@ -588,15 +588,8 @@
 /obj/item/stack/cable_coil/cyborg/zero_amount()
 	return FALSE
 
-///Nothing can be done with a coil that has no cable left
-/obj/item/stack/cable_coil/cyborg/proc/check_has_cable(mob/user)
-	if(amount >= 1)
-		return TRUE
-	user?.balloon_alert(user, "out of cable")
-	return FALSE
-
 /obj/item/stack/cable_coil/cyborg/attack_self(mob/user)
-	if(!check_has_cable(user))
+	if(!cyborg_stack_has_amount(src, user))
 		return
 	return ..()
 
@@ -604,7 +597,7 @@
 /obj/item/stack/cable_coil/cyborg/preattack(atom/target, mob/user, params)
 	if(refill_from(target, user))
 		return TRUE
-	if(!check_has_cable(user))
+	if(!cyborg_stack_has_amount(src, user))
 		return TRUE
 	return ..()
 

@@ -6,6 +6,7 @@
  * A stack's amount is how many it could make from what is left, so using one of them lowers what the others show.
  * The plasteel sheets have a reservoir of their own. Nothing refills them by itself.
  * They can't be split. Using one on loose metal, plasteel or wire next to us converts what it is used on into reservoir, and uses it up.
+ * When the reservoir has nothing for one of them it stays at 0 and can't be used, it is not deleted like an ordinary stack, which would lose the tool for good.
  */
 ///Is this one of the tools that draw on our metal reservoir
 /mob/living/silicon/robot/proc/is_reservoir_stack(obj/item/checked_item)
@@ -92,6 +93,19 @@
 	borg.sync_reservoir()
 	return TRUE
 
+///A stack of a cyborg that has nothing left can't be used, it stays at 0 and is not deleted. Returns whether it has any
+/proc/cyborg_stack_has_amount(obj/item/stack/stack, mob/user)
+	if(stack.get_amount() >= 1)
+		return TRUE
+	user?.balloon_alert(user, "out of [stack.name]")
+	return FALSE
+
+///What the stacks of a cyborg do when they are used on something, before anything else: convert a loose stack, or do nothing if they are empty. Returns TRUE if that was it
+/proc/cyborg_stack_preattack(obj/item/stack/stack, atom/target, mob/user)
+	if(convert_into_reservoir(target, user))
+		return TRUE
+	return !cyborg_stack_has_amount(stack, user)
+
 /obj/item/stack/sheet/plasteel/cyborg
 	max_amount = CYBORG_PLASTEEL_RESERVE_MAX
 	merge_type = /obj/item/stack/sheet/plasteel/cyborg
@@ -108,8 +122,18 @@
 /obj/item/stack/sheet/plasteel/cyborg/change_stack(mob/user, new_amount)
 	return
 
+/obj/item/stack/sheet/plasteel/cyborg/zero_amount()
+	return FALSE
+
+/obj/item/stack/sheet/plasteel/cyborg/attack_self(mob/user)
+	if(!cyborg_stack_has_amount(src, user))
+		return
+	return ..()
+
 /obj/item/stack/sheet/plasteel/cyborg/preattack(atom/target, mob/user, params)
-	return convert_into_reservoir(target, user) || ..()
+	if(cyborg_stack_preattack(src, target, user))
+		return TRUE
+	return ..()
 
 /obj/item/stack/sheet/metal/cyborg
 	max_amount = CYBORG_METAL_RESERVE_MAX
@@ -127,8 +151,18 @@
 /obj/item/stack/sheet/metal/cyborg/change_stack(mob/user, new_amount)
 	return
 
+/obj/item/stack/sheet/metal/cyborg/zero_amount()
+	return FALSE
+
+/obj/item/stack/sheet/metal/cyborg/attack_self(mob/user)
+	if(!cyborg_stack_has_amount(src, user))
+		return
+	return ..()
+
 /obj/item/stack/sheet/metal/cyborg/preattack(atom/target, mob/user, params)
-	return convert_into_reservoir(target, user) || ..()
+	if(cyborg_stack_preattack(src, target, user))
+		return TRUE
+	return ..()
 
 ///How much metal one of a wire type costs in the metal recipes, the metal it takes over the amount it makes
 /proc/get_cyborg_wire_cost(wire_type)
@@ -155,8 +189,18 @@
 /obj/item/stack/barbed_wire/cyborg/change_stack(mob/user, new_amount)
 	return
 
+/obj/item/stack/barbed_wire/cyborg/zero_amount()
+	return FALSE
+
+/obj/item/stack/barbed_wire/cyborg/attack_self(mob/user)
+	if(!cyborg_stack_has_amount(src, user))
+		return
+	return ..()
+
 /obj/item/stack/barbed_wire/cyborg/preattack(atom/target, mob/user, params)
-	return convert_into_reservoir(target, user) || ..()
+	if(cyborg_stack_preattack(src, target, user))
+		return TRUE
+	return ..()
 
 /obj/item/stack/razorwire/cyborg
 	merge_type = /obj/item/stack/razorwire/cyborg
@@ -177,5 +221,15 @@
 /obj/item/stack/razorwire/cyborg/change_stack(mob/user, new_amount)
 	return
 
+/obj/item/stack/razorwire/cyborg/zero_amount()
+	return FALSE
+
+/obj/item/stack/razorwire/cyborg/attack_self(mob/user)
+	if(!cyborg_stack_has_amount(src, user))
+		return
+	return ..()
+
 /obj/item/stack/razorwire/cyborg/preattack(atom/target, mob/user, params)
-	return convert_into_reservoir(target, user) || ..()
+	if(cyborg_stack_preattack(src, target, user))
+		return TRUE
+	return ..()
